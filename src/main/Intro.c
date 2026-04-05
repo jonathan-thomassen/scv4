@@ -1,7 +1,7 @@
 #include <SDL3/SDL_events.h>
-#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_timer.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "Drawbridge.h"
@@ -178,6 +178,9 @@ static void update_fps_title(Uint64* p_t0, int* p_frames) {
 
 /* entry point */
 int main(int argc, const char* argv[]) {
+  setenv("SDL_VIDEODRIVER", "x11", 1);
+  setenv("GDK_DPI_SCALE", "1", 1);
+
   TLN_Tilemap collision;
   TLN_Tilemap drawbridge_bg;
   TLN_Tilemap drawbridge_water;
@@ -226,8 +229,7 @@ int main(int argc, const char* argv[]) {
   TLN_SetLayerBlendMode(MAIN_LAYER, BLEND_MIX50);
 
   /* main loop */
-  SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "0");
-  TLN_CreateWindow(CWF_NEAREST | CWF_S6 | CWF_NOVSYNC);
+  TLN_CreateWindow(CWF_NEAREST | CWF_S8 | CWF_NOVSYNC);
   TLN_DefineInputKey(PLAYER1, INPUT_UP, SDLK_W);
   TLN_DefineInputKey(PLAYER1, INPUT_LEFT, SDLK_A);
   TLN_DefineInputKey(PLAYER1, INPUT_RIGHT, SDLK_D);
