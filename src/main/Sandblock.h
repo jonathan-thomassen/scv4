@@ -8,10 +8,10 @@
  * Loads the sandblock spriteset and clears all slots.
  * Must be called once before SandblockSpawn().
  */
-void SandblockInit(void);
+void sandblock_init(void);
 
 /** Frees all sandblock resources. */
-void SandblockDeinit(void);
+void sandblock_deinit(void);
 
 /**
  * Activates a sandblock at the given world coordinates.
@@ -20,7 +20,7 @@ void SandblockDeinit(void);
  * \param world_y  World y position (top of block, pixels from map origin)
  * \return         Slot index (0..MAX_SANDBLOCKS-1) on success, -1 if full
  */
-int SandblockSpawn(int world_x, int world_y);
+int sandblock_spawn(int world_x, int world_y);
 
 /**
  * Updates screen positions of all active sandblocks.
@@ -28,7 +28,7 @@ int SandblockSpawn(int world_x, int world_y);
  *
  * \param xworld  Current horizontal world scroll offset
  */
-void SandblockTasks(int xworld);
+void sandblock_tasks(int xworld);
 
 /**
  * \param sprite_x   Simon's screen x position
@@ -54,13 +54,13 @@ typedef struct {
  * Fills \p out with the state of slot \p index.
  * Returns true if the slot is active, false if empty (\p out is not written).
  */
-bool SandblockGet(int index, SandblockState* out);
+bool sandblock_get(int index, SandblockState* out);
 
 /**
  * Marks slot \p index as stood-on this frame so SandblockTasks() can
  * advance its crumble counter.  Call when Simon's floor check hits a block.
  */
-void SandblockMarkStood(int index);
+void sandblock_mark_stood(int index);
 
 /**
  * Fills \p out with states of all active, non-falling sandblocks.
@@ -68,6 +68,6 @@ void SandblockMarkStood(int index);
  * Use this to build a per-frame snapshot and avoid re-scanning the pool
  * in every collision function.
  */
-int SandblockSnapshot(SandblockState out[]);
+int sandblock_snapshot(SandblockState out[]);
 
 #endif

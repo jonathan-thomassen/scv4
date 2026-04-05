@@ -938,7 +938,7 @@ TEST(test_col_def_lookup_wrong_frame) {
  * Additional: UP-RIGHT corner probe branches (direct static calls)
  * ======================================================================== */
 
-TEST(test_ur_probe_A1b_v_only) {
+TEST(test_ur_probe_a1b_v_only) {
   mock_grid_clear();
   mock_grid_set(7, 7, true); /* v solid */
   int dx = 8;
@@ -948,7 +948,7 @@ TEST(test_ur_probe_A1b_v_only) {
   ASSERT_EQ(dy, -1); /* -7 + (8-2) = -1 */
 }
 
-TEST(test_ur_probe_A2a_h_only) {
+TEST(test_ur_probe_a2a_h_only) {
   mock_grid_clear();
   mock_grid_set(8, 8, true); /* h solid */
   int dx = 8;
@@ -958,7 +958,7 @@ TEST(test_ur_probe_A2a_h_only) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ur_probe_A2b_h_and_v) {
+TEST(test_ur_probe_a2b_h_and_v) {
   mock_grid_clear();
   mock_grid_set(8, 8, true); /* h */
   mock_grid_set(7, 7, true); /* v */
@@ -969,7 +969,7 @@ TEST(test_ur_probe_A2b_h_and_v) {
   ASSERT_EQ(dy, -1);
 }
 
-TEST(test_ur_probe_B1_hv_only) {
+TEST(test_ur_probe_b1_hv_only) {
   mock_grid_clear();
   mock_grid_set(8, 7, true); /* hv only */
   int dx = 8;
@@ -980,7 +980,7 @@ TEST(test_ur_probe_B1_hv_only) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ur_probe_B2_hv_and_v) {
+TEST(test_ur_probe_b2_hv_and_v) {
   mock_grid_clear();
   mock_grid_set(8, 7, true); /* hv */
   mock_grid_set(7, 7, true); /* v */
@@ -991,7 +991,7 @@ TEST(test_ur_probe_B2_hv_and_v) {
   ASSERT_EQ(dy, -1); /* v clamp only */
 }
 
-TEST(test_ur_probe_C_hv_and_h) {
+TEST(test_ur_probe_c_hv_and_h) {
   mock_grid_clear();
   mock_grid_set(8, 7, true); /* hv */
   mock_grid_set(8, 8, true); /* h */
@@ -1002,7 +1002,7 @@ TEST(test_ur_probe_C_hv_and_h) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ur_probe_D_all_solid) {
+TEST(test_ur_probe_d_all_solid) {
   mock_grid_clear();
   mock_grid_set(8, 7, true); /* hv */
   mock_grid_set(8, 8, true); /* h */
@@ -1018,7 +1018,7 @@ TEST(test_ur_probe_D_all_solid) {
  * Additional: UP-LEFT corner probe branches
  * ======================================================================== */
 
-TEST(test_ul_probe_A1b_v_only) {
+TEST(test_ul_probe_a1b_v_only) {
   mock_grid_clear();
   mock_grid_set(5, 7, true); /* v at (41,58) T(5,7) */
   int dx = -8;
@@ -1028,7 +1028,7 @@ TEST(test_ul_probe_A1b_v_only) {
   ASSERT_EQ(dy, -1);
 }
 
-TEST(test_ul_probe_A2a_h_only) {
+TEST(test_ul_probe_a2a_h_only) {
   mock_grid_clear();
   mock_grid_set(4, 8, true); /* h at (34,65) T(4,8) */
   int dx = -8;
@@ -1038,7 +1038,7 @@ TEST(test_ul_probe_A2a_h_only) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ul_probe_A2b_h_and_v) {
+TEST(test_ul_probe_a2b_h_and_v) {
   mock_grid_clear();
   mock_grid_set(4, 8, true); /* h */
   mock_grid_set(5, 7, true); /* v */
@@ -1049,7 +1049,7 @@ TEST(test_ul_probe_A2b_h_and_v) {
   ASSERT_EQ(dy, -1);
 }
 
-TEST(test_ul_probe_B1_hv_only) {
+TEST(test_ul_probe_b1_hv_only) {
   mock_grid_clear();
   mock_grid_set(4, 7, true); /* hv at (34,58) T(4,7) */
   int dx = -8;
@@ -1059,7 +1059,7 @@ TEST(test_ul_probe_B1_hv_only) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ul_probe_B2_hv_and_v) {
+TEST(test_ul_probe_b2_hv_and_v) {
   mock_grid_clear();
   mock_grid_set(4, 7, true); /* hv */
   mock_grid_set(5, 7, true); /* v */
@@ -1070,7 +1070,7 @@ TEST(test_ul_probe_B2_hv_and_v) {
   ASSERT_EQ(dy, -1);
 }
 
-TEST(test_ul_probe_C_hv_and_h) {
+TEST(test_ul_probe_c_hv_and_h) {
   mock_grid_clear();
   mock_grid_set(4, 7, true); /* hv */
   mock_grid_set(4, 8, true); /* h */
@@ -1081,7 +1081,7 @@ TEST(test_ul_probe_C_hv_and_h) {
   ASSERT_EQ(dy, -7);
 }
 
-TEST(test_ul_probe_D_all_solid) {
+TEST(test_ul_probe_d_all_solid) {
   mock_grid_clear();
   mock_grid_set(4, 7, true); /* hv */
   mock_grid_set(4, 8, true); /* h */
@@ -1097,7 +1097,7 @@ TEST(test_ul_probe_D_all_solid) {
  * Additional: DOWN-RIGHT corner probe branches
  * ======================================================================== */
 
-TEST(test_dr_probe_A1b_v_only) {
+TEST(test_dr_probe_a1b_v_only) {
   mock_grid_clear();
   mock_grid_set(7, 14, true); /* v at (57,118) T(7,14) off 6 */
   int dx = 8;
@@ -1107,7 +1107,7 @@ TEST(test_dr_probe_A1b_v_only) {
   ASSERT_EQ(dy, 1); /* 7 - 6 */
 }
 
-TEST(test_dr_probe_A2a_h_only) {
+TEST(test_dr_probe_a2a_h_only) {
   mock_grid_clear();
   mock_grid_set(8, 13, true); /* h at (65,109) T(8,13) */
   int dx = 8;
@@ -1117,7 +1117,7 @@ TEST(test_dr_probe_A2a_h_only) {
   ASSERT_EQ(dy, 7);
 }
 
-TEST(test_dr_probe_A2b_h_and_v) {
+TEST(test_dr_probe_a2b_h_and_v) {
   mock_grid_clear();
   mock_grid_set(8, 13, true); /* h */
   mock_grid_set(7, 14, true); /* v */
@@ -1128,7 +1128,7 @@ TEST(test_dr_probe_A2b_h_and_v) {
   ASSERT_EQ(dy, 1);
 }
 
-TEST(test_dr_probe_B1_hv_only) {
+TEST(test_dr_probe_b1_hv_only) {
   mock_grid_clear();
   mock_grid_set(8, 14, true); /* hv at (65,116) T(8,14) */
   int dx = 8;
@@ -1139,7 +1139,7 @@ TEST(test_dr_probe_B1_hv_only) {
   ASSERT_EQ(dx, 8);
 }
 
-TEST(test_dr_probe_B2_hv_and_v) {
+TEST(test_dr_probe_b2_hv_and_v) {
   mock_grid_clear();
   mock_grid_set(8, 14, true); /* hv */
   mock_grid_set(7, 14, true); /* v */
@@ -1150,7 +1150,7 @@ TEST(test_dr_probe_B2_hv_and_v) {
   ASSERT_EQ(dx, 8);
 }
 
-TEST(test_dr_probe_C_hv_and_h) {
+TEST(test_dr_probe_c_hv_and_h) {
   mock_grid_clear();
   mock_grid_set(8, 14, true); /* hv */
   mock_grid_set(8, 13, true); /* h */
@@ -1161,7 +1161,7 @@ TEST(test_dr_probe_C_hv_and_h) {
   ASSERT_EQ(dy, 7);
 }
 
-TEST(test_dr_probe_D_all_solid) {
+TEST(test_dr_probe_d_all_solid) {
   mock_grid_clear();
   mock_grid_set(8, 14, true);
   mock_grid_set(8, 13, true);
@@ -1177,7 +1177,7 @@ TEST(test_dr_probe_D_all_solid) {
  * Additional: DOWN-LEFT corner probe branches
  * ======================================================================== */
 
-TEST(test_dl_probe_A1b_v_only) {
+TEST(test_dl_probe_a1b_v_only) {
   mock_grid_clear();
   mock_grid_set(5, 14, true); /* v at (42,118) T(5,14) off 6 */
   int dx = -8;
@@ -1187,7 +1187,7 @@ TEST(test_dl_probe_A1b_v_only) {
   ASSERT_EQ(dy, 1);
 }
 
-TEST(test_dl_probe_A2a_h_only) {
+TEST(test_dl_probe_a2a_h_only) {
   mock_grid_clear();
   mock_grid_set(4, 13, true); /* h at (34,111) T(4,13) */
   int dx = -8;
@@ -1197,7 +1197,7 @@ TEST(test_dl_probe_A2a_h_only) {
   ASSERT_EQ(dy, 7);
 }
 
-TEST(test_dl_probe_B1_hv_only) {
+TEST(test_dl_probe_b1_hv_only) {
   mock_grid_clear();
   mock_grid_set(4, 14, true); /* hv at (33,116) T(4,14) */
   int dx = -8;
@@ -1208,7 +1208,7 @@ TEST(test_dl_probe_B1_hv_only) {
   ASSERT_EQ(dx, -8);
 }
 
-TEST(test_dl_probe_C_hv_and_h) {
+TEST(test_dl_probe_c_hv_and_h) {
   mock_grid_clear();
   mock_grid_set(4, 14, true);
   mock_grid_set(4, 13, true);
@@ -1219,7 +1219,7 @@ TEST(test_dl_probe_C_hv_and_h) {
   ASSERT_EQ(dy, 7);
 }
 
-TEST(test_dl_probe_D_all_solid) {
+TEST(test_dl_probe_d_all_solid) {
   mock_grid_clear();
   mock_grid_set(4, 14, true);
   mock_grid_set(4, 13, true);
@@ -1613,38 +1613,38 @@ int main(void) {
   RUN_TEST(test_col_def_lookup_wrong_frame);
 
   printf("\n[up-right corner probe branches]\n");
-  RUN_TEST(test_ur_probe_A1b_v_only);
-  RUN_TEST(test_ur_probe_A2a_h_only);
-  RUN_TEST(test_ur_probe_A2b_h_and_v);
-  RUN_TEST(test_ur_probe_B1_hv_only);
-  RUN_TEST(test_ur_probe_B2_hv_and_v);
-  RUN_TEST(test_ur_probe_C_hv_and_h);
-  RUN_TEST(test_ur_probe_D_all_solid);
+  RUN_TEST(test_ur_probe_a1b_v_only);
+  RUN_TEST(test_ur_probe_a2a_h_only);
+  RUN_TEST(test_ur_probe_a2b_h_and_v);
+  RUN_TEST(test_ur_probe_b1_hv_only);
+  RUN_TEST(test_ur_probe_b2_hv_and_v);
+  RUN_TEST(test_ur_probe_c_hv_and_h);
+  RUN_TEST(test_ur_probe_d_all_solid);
 
   printf("\n[up-left corner probe branches]\n");
-  RUN_TEST(test_ul_probe_A1b_v_only);
-  RUN_TEST(test_ul_probe_A2a_h_only);
-  RUN_TEST(test_ul_probe_A2b_h_and_v);
-  RUN_TEST(test_ul_probe_B1_hv_only);
-  RUN_TEST(test_ul_probe_B2_hv_and_v);
-  RUN_TEST(test_ul_probe_C_hv_and_h);
-  RUN_TEST(test_ul_probe_D_all_solid);
+  RUN_TEST(test_ul_probe_a1b_v_only);
+  RUN_TEST(test_ul_probe_a2a_h_only);
+  RUN_TEST(test_ul_probe_a2b_h_and_v);
+  RUN_TEST(test_ul_probe_b1_hv_only);
+  RUN_TEST(test_ul_probe_b2_hv_and_v);
+  RUN_TEST(test_ul_probe_c_hv_and_h);
+  RUN_TEST(test_ul_probe_d_all_solid);
 
   printf("\n[down-right corner probe branches]\n");
-  RUN_TEST(test_dr_probe_A1b_v_only);
-  RUN_TEST(test_dr_probe_A2a_h_only);
-  RUN_TEST(test_dr_probe_A2b_h_and_v);
-  RUN_TEST(test_dr_probe_B1_hv_only);
-  RUN_TEST(test_dr_probe_B2_hv_and_v);
-  RUN_TEST(test_dr_probe_C_hv_and_h);
-  RUN_TEST(test_dr_probe_D_all_solid);
+  RUN_TEST(test_dr_probe_a1b_v_only);
+  RUN_TEST(test_dr_probe_a2a_h_only);
+  RUN_TEST(test_dr_probe_a2b_h_and_v);
+  RUN_TEST(test_dr_probe_b1_hv_only);
+  RUN_TEST(test_dr_probe_b2_hv_and_v);
+  RUN_TEST(test_dr_probe_c_hv_and_h);
+  RUN_TEST(test_dr_probe_d_all_solid);
 
   printf("\n[down-left corner probe branches]\n");
-  RUN_TEST(test_dl_probe_A1b_v_only);
-  RUN_TEST(test_dl_probe_A2a_h_only);
-  RUN_TEST(test_dl_probe_B1_hv_only);
-  RUN_TEST(test_dl_probe_C_hv_and_h);
-  RUN_TEST(test_dl_probe_D_all_solid);
+  RUN_TEST(test_dl_probe_a1b_v_only);
+  RUN_TEST(test_dl_probe_a2a_h_only);
+  RUN_TEST(test_dl_probe_b1_hv_only);
+  RUN_TEST(test_dl_probe_c_hv_and_h);
+  RUN_TEST(test_dl_probe_d_all_solid);
 
   printf("\n[middle probes]\n");
   RUN_TEST(test_middle_right_h_solid);

@@ -28,59 +28,59 @@ typedef struct {
 #define MAX_SIMON_SPRITES 8
 #define SIMON_SPRITE_BASE (1 + MAX_SANDBLOCKS + MAX_TORCHES + MAX_PROPS)
 
-void SimonInit(void);
-void SimonDeinit(void);
-void SimonTasks(void);
-int SimonGetPosition(void);
-void SimonSetState(SimonState new_state);
-void SimonSetPosition(Coords2d pos);
+void simon_init(void);
+void simon_deinit(void);
+void simon_tasks(void);
+int simon_get_position(void);
+void simon_set_state(SimonState new_state);
+void simon_set_position(Coords2d pos);
 
 /* Re-inserts Simon at the end of Tilengine's sprite render list so he
  * always draws on top of torches and props that were spawned after init. */
-void SimonBringToFront(void);
+void simon_bring_to_front(void);
 
 /**
  * Freezes the camera: after this call move_left/move_right only update the
  * screen x, never xworld. SimonGetPosition() continues to return the locked
  * scroll value so all layer positions stay fixed automatically.
  */
-void SimonFreezeCamera(void);
+void simon_freeze_camera(void);
 
 /**
  * Pushes Simon rightward by \p pixels on screen, clamped to the screen edge.
  * Used by the drawbridge animation to carry Simon off screen as the bridge rises.
  */
-void SimonPushRight(int pixels);
+void simon_push_right(int pixels);
 
 /** Returns Simon's current screen x position. */
-int SimonGetScreenX(void);
+int simon_get_screen_x(void);
 
 /** Sets Simon's screen x position without affecting the world scroll offset. */
-void SimonSetScreenX(int screen_x);
+void simon_set_screen_x(int screen_x);
 
 /**
  * Sets Simon's y so that his feet land on the given screen y coordinate.
  * Zeroes vertical velocity and cancels any jump — use for landing events.
  */
-void SimonSetFeetY(int feet_y);
+void simon_set_feet_y(int feet_y);
 
 /**
  * Moves Simon's y so his feet are at feet_y and zeroes fall velocity,
  * without touching state or apex_hang.
  */
-void SimonPinFeetY(int feet_y);
+void simon_pin_feet_y(int feet_y);
 
 /** Returns the screen y coordinate of Simon's feet (bottom of sprite). */
-int SimonGetFeetY(void);
+int simon_get_feet_y(void);
 
 /** Returns the screen y coordinate of Simon's top edge (top of sprite). */
-int SimonGetScreenY(void);
+int simon_get_screen_y(void);
 
 /** Returns true if Simon is currently facing right, false if facing left. */
-bool SimonFacingRight(void);
+bool simon_facing_right(void);
 
 /** Returns true if Simon is in any crouching state. */
-bool SimonIsCrouching(void);
+bool simon_is_crouching(void);
 
 /**
  * Sets a bridge-surface floor override used by SimonTasks() physics.
@@ -88,17 +88,17 @@ bool SimonIsCrouching(void);
  * feet_y — call this BEFORE SimonTasks() every frame Simon is on the bridge.
  * Clears automatically each frame; re-set each frame while on the bridge.
  */
-void SimonSetBridgeFloor(int feet_y);
+void simon_set_bridge_floor(int feet_y);
 
 /** Removes the bridge floor override (restores tile-based collision). */
-void SimonClearBridgeFloor(void);
+void simon_clear_bridge_floor(void);
 
 /**
  * Sets the bridge snap tolerance (0–8 px). When non-zero, Simon can stand
  * up to \p tol pixels into the bridge surface. Scale with bridge progress:
  * 0 when flat, 8 when fully raised. Reset to 0 by SimonClearBridgeFloor().
  */
-void SimonSetBridgeTolerance(int tol);
+void simon_set_bridge_tolerance(int tol);
 
 /**
  * Directly sets the internal world-scroll offset used for tile collision
@@ -106,6 +106,6 @@ void SimonSetBridgeTolerance(int tol);
  * after advancing the camera position so that collision queries stay in sync
  * with the layer scroll position.
  */
-void SimonSetWorldX(int world_x);
+void simon_set_world_x(int world_x);
 
 #endif

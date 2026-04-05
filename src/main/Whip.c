@@ -277,7 +277,7 @@ void WhipTasks(void) {
    * no swing is already running. */
   if ((int)pressed && !prev_pressed && !WhipIsActive()) {
     swing_frame = 0;
-    swing_facing_right = SimonFacingRight();
+    swing_facing_right = simon_facing_right();
     swing_up = (int)TLN_GetInput(INPUT_UP) != 0;
   }
   prev_pressed = pressed;
@@ -312,8 +312,8 @@ void WhipRender(void) {
     return;
   }
   int stage = last_rendered_stage;
-  int sprite_x = SimonGetScreenX();
-  int sprite_y = SimonGetScreenY();
+  int sprite_x = simon_get_screen_x();
+  int sprite_y = simon_get_screen_y();
   const WhipStage* active_stages = (int)swing_up ? up_stages : stages;
   int count = active_stages[stage].count;
 
@@ -333,7 +333,7 @@ void WhipRender(void) {
       TLN_SetSpritePicture(WHIP_SPRITE_BASE + seg, segment->pic);
       TLN_EnableSpriteFlag(WHIP_SPRITE_BASE + seg, FLAG_FLIPX, flip_h);
       TLN_EnableSpriteFlag(WHIP_SPRITE_BASE + seg, FLAG_FLIPY, segment->flip_v);
-      int y_offset = (int)SimonIsCrouching() ? 12 : 0;
+      int y_offset = (int)simon_is_crouching() ? 12 : 0;
       TLN_SetSpritePosition(WHIP_SPRITE_BASE + seg, world_x, sprite_y + segment->dy + y_offset);
     } else {
       TLN_DisableSprite(WHIP_SPRITE_BASE + seg);

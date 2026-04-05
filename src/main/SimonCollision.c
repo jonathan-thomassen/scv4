@@ -41,20 +41,20 @@ void load_col_definition(void) {
     return;
   }
 
-  int cur_H = 0;
-  int cur_N = 0;
+  int cur_h = 0;
+  int cur_n = 0;
   int cur_row = 0;
   char line[64];
   while (fgets(line, sizeof(line), file) != NULL) {
     int h;
     int n;
     if (sscanf(line, "# %dx%d", &h, &n) == 2) {
-      cur_H = h;
-      cur_N = n;
+      cur_h = h;
+      cur_n = n;
       cur_row = 0;
       continue;
     }
-    if (cur_H < 1 || cur_H > COL_DEF_MAX_H || cur_N < 1 || cur_N > COL_DEF_MAX_N) {
+    if (cur_h < 1 || cur_h > COL_DEF_MAX_H || cur_n < 1 || cur_n > COL_DEF_MAX_N) {
       continue;
     }
     if (line[0] == '/' || line[0] == '\n' || line[0] == '\r') {
@@ -83,7 +83,7 @@ void load_col_definition(void) {
         p++;
       }
     }
-    col_thresh[cur_H][cur_N][cur_row] = thresh;
+    col_thresh[cur_h][cur_n][cur_row] = thresh;
     cur_row++;
   }
   fclose(file);
@@ -116,9 +116,9 @@ void load_col_definition(void) {
  * H, N: grid selector (same semantics as col_definition_lookup, interpreted
  * in the rotated frame).
  */
-static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bool mirror_v, int* displacement_x,
+static void col_definition_lookup(int h, int n, int rotations, bool mirror_h, bool mirror_v, int* displacement_x,
                                   int* displacement_y) {
-  if (H < 1 || H > COL_DEF_MAX_H || N < 1 || N > COL_DEF_MAX_N) {
+  if (h < 1 || h > COL_DEF_MAX_H || n < 1 || n > COL_DEF_MAX_N) {
     return;
   }
 
@@ -151,14 +151,14 @@ static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bo
     return;
   }
 
-  if (velocity_x >= col_thresh[H][N][row_idisplacement_x]) {
+  if (velocity_x >= col_thresh[h][n][row_idisplacement_x]) {
     return; /* V cell — valid, no change */
   }
 
   /* Invalid: clamp orig_displacement_y to H-8, keeping orig_displacement_x.
    * Then apply the forward transform T = Mirror ∘ Rotate to write back. */
   int clamped_velocity_x = velocity_x;
-  int clamped_velocity_y = H - MAX_VELOCITY;
+  int clamped_velocity_y = h - MAX_VELOCITY;
 
   for (int i = 0; i < (rotations % 4); i++) { /* one CW step */
     int tmp = clamped_velocity_x;

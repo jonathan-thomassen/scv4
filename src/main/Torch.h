@@ -8,10 +8,10 @@
  * Loads the torch spriteset and clears all slots.
  * Must be called once before TorchSpawn().
  */
-void TorchInit(void);
+void torch_init(void);
 
 /** Frees all torch resources. */
-void TorchDeinit(void);
+void torch_deinit(void);
 
 /**
  * Activates a torch at the given world coordinates.
@@ -20,7 +20,7 @@ void TorchDeinit(void);
  * \param world_y  World y position (top of torches, pixels from map origin)
  * \return         Slot index (0..MAX_TORCHES-1) on success, -1 if full
  */
-int TorchSpawn(int world_x, int world_y);
+int torch_spawn(int world_x, int world_y);
 
 /**
  * Updates screen positions of all active torches.
@@ -28,7 +28,7 @@ int TorchSpawn(int world_x, int world_y);
  *
  * \param xworld  Current horizontal world scroll offset
  */
-void TorchTasks(int xworld);
+void torch_tasks(int xworld);
 
 /** Pixel dimensions of one torch — needed for AABB tests in Simon.c. */
 #define TORCH_WIDTH  16

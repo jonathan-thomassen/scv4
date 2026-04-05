@@ -12,7 +12,7 @@
 
 /* Cumulative stood_frames thresholds at which each transition fires.
  * 0→1 after 30 frames, 1→2 after 15 more (45 total), 2→3 after 15 more (60). */
-static const int STATE_THRESHOLDS[MAX_PICTURE] = {30, 45, 60};
+static const int state_thresholds[MAX_PICTURE] = {30, 45, 60};
 
 /* After this many cumulative stood_frames the block begins to fall. */
 #define FALL_THRESHOLD 75
@@ -22,7 +22,7 @@ static const int STATE_THRESHOLDS[MAX_PICTURE] = {30, 45, 60};
 
 static int picture_for_frames(int frames) {
   int picture = 0;
-  while (picture < MAX_PICTURE && frames >= STATE_THRESHOLDS[picture]) {
+  while (picture < MAX_PICTURE && frames >= state_thresholds[picture]) {
     picture++;
   }
   return picture;
@@ -41,7 +41,7 @@ typedef struct {
 static TLN_Spriteset spriteset;
 static Sandblock blocks[MAX_SANDBLOCKS];
 
-void SandblockInit(void) {
+void sandblock_init(void) {
   spriteset = TLN_LoadSpriteset("sandblock");
   for (int i = 0; i < MAX_SANDBLOCKS; i++) {
     blocks[i].active = false;
@@ -49,7 +49,7 @@ void SandblockInit(void) {
   }
 }
 
-void SandblockDeinit(void) {
+void sandblock_deinit(void) {
   for (int i = 0; i < MAX_SANDBLOCKS; i++) {
     TLN_DisableSprite(SPRITE_BASE + i);
   }
@@ -59,7 +59,7 @@ void SandblockDeinit(void) {
   spriteset = NULL;
 }
 
-int SandblockSpawn(int world_x, int world_y) {
+int sandblock_spawn(int world_x, int world_y) {
   for (int i = 0; i < MAX_SANDBLOCKS; i++) {
     if (blocks[i].active) {
       continue;
@@ -78,7 +78,7 @@ int SandblockSpawn(int world_x, int world_y) {
   return -1; /* no free slot */
 }
 
-void SandblockTasks(int xworld) {
+void sandblock_tasks(int xworld) {
   for (int i = 0; i < MAX_SANDBLOCKS; i++) {
     if (!blocks[i].active) {
       continue;
@@ -120,7 +120,7 @@ void SandblockTasks(int xworld) {
   }
 }
 
-bool SandblockGet(int index, SandblockState* out) {
+bool sandblock_get(int index, SandblockState* out) {
   if (index < 0 || index >= MAX_SANDBLOCKS || !blocks[index].active) {
     return false;
   }
@@ -131,13 +131,13 @@ bool SandblockGet(int index, SandblockState* out) {
   return true;
 }
 
-void SandblockMarkStood(int index) {
+void sandblock_mark_stood(int index) {
   if (index >= 0 && index < MAX_SANDBLOCKS) {
     blocks[index].stood_this_frame = true;
   }
 }
 
-int SandblockSnapshot(SandblockState out[]) {
+int sandblock_snapshot(SandblockState out[]) {
   int amount = 0;
   for (int i = 0; i < MAX_SANDBLOCKS; i++) {
     if (!blocks[i].active || (int)blocks[i].falling) {

@@ -72,7 +72,7 @@ static const int baked_tan[DB_STEPS] = {
 
 /* ------------------------------------------------------------------ */
 
-void DrawbridgeInit(int layer, int hinge_x, int hinge_y) {
+void drawbridge_init(int layer, int hinge_x, int hinge_y) {
   db_state.layer = layer;
   db_state.hinge_x = hinge_x;
   db_state.hinge_y = hinge_y;
@@ -81,7 +81,7 @@ void DrawbridgeInit(int layer, int hinge_x, int hinge_y) {
   db_state.tick = DB_TICK_RATE;
 }
 
-void DrawbridgeAdvance(void) {
+void drawbridge_advance(void) {
   if (db_state.progress >= DB_STEPS - 1) {
     return;
   }
@@ -89,9 +89,9 @@ void DrawbridgeAdvance(void) {
   db_state.affine_dirty = true;
 }
 
-int DrawbridgeGetProgress(void) { return db_state.progress; }
+int drawbridge_get_progress(void) { return db_state.progress; }
 
-void DrawbridgeSetHinge(int hinge_x, int hinge_y) {
+void drawbridge_set_hinge(int hinge_x, int hinge_y) {
   db_state.hinge_x = hinge_x;
   db_state.hinge_y = hinge_y;
   db_state.affine_dirty = true;
@@ -99,7 +99,7 @@ void DrawbridgeSetHinge(int hinge_x, int hinge_y) {
 
 /* ------------------------------------------------------------------ */
 
-bool DrawbridgeTick(void) {
+bool drawbridge_tick(void) {
   if (--db_state.tick <= 0) {
     db_state.tick = DB_TICK_RATE;
     return true;
@@ -107,19 +107,19 @@ bool DrawbridgeTick(void) {
   return false;
 }
 
-int DrawbridgeSurfaceY(int screen_x) {
+int drawbridge_surface_y(int screen_x) {
   int d = db_state.hinge_x - screen_x; /* distance left of hinge */
   int p = db_state.progress;
   if (p >= DB_STEPS - 1) {
     return db_state.hinge_y; /* bridge fully vertical (cos == 0) */
   }
   /* Q8 fixed-point: tan*256 is baked_tan[p].  +128 rounds to nearest. */
-  return db_state.hinge_y - ((d * baked_tan[p] + 128) >> 8);
+  return db_state.hinge_y - (((d * baked_tan[p]) + 128) >> 8);
 }
 
-int DrawbridgeHingeX(void) { return db_state.hinge_x; }
+int drawbridge_hinge_x(void) { return db_state.hinge_x; }
 
-ChainPos DrawbridgeChainPos(void) {
+ChainPos drawbridge_chain_pos(void) {
   int p = db_state.progress;
   float cos_a = TRIG_COS(p);
   float sin_a = baked_sin[p];
@@ -133,7 +133,7 @@ ChainPos DrawbridgeChainPos(void) {
   return pos;
 }
 
-void DrawbridgeTasks(void) {
+void drawbridge_tasks(void) {
   if (db_state.affine_dirty) {
     if (db_state.progress == 0) {
       /* Bridge is flat — drop back to fast normal tile rendering. */

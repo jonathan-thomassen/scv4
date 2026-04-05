@@ -21,40 +21,40 @@
  * Must be called after SimonInit() so that all earlier sprite slots are
  * already claimed, keeping render order correct.
  */
-void WhipInit(void);
+void whip_init(void);
 
 /** Frees whip resources and disables the sprite slot. */
-void WhipDeinit(void);
+void whip_deinit(void);
 
 /**
  * Returns true while a whip swing is in progress.
  * Simon's movement input should be suppressed whenever this is true.
  */
-bool WhipIsActive(void);
+bool whip_is_active(void);
 
 /**
  * Returns the current whip animation stage (0-based) while a swing is active,
  * or 0 when inactive.  Used by Simon.c to synchronise his body pose.
  */
-int WhipGetStage(void);
+int whip_get_stage(void);
 
 /**
  * Returns true if the current (or most recently started) swing was triggered
  * with INPUT_UP held — i.e. Simon is whipping upward.
  */
-bool WhipIsUp(void);
+bool whip_is_up(void);
 
 /**
  * Polls INPUT_B (keyboard X) to start a swing, then advances the frame
  * counter and stage selection. Call once per game frame, BEFORE SimonTasks().
  * Sprite placement is deferred — call WhipRender() after SimonTasks().
  */
-void WhipTasks(void);
+void whip_tasks(void);
 
 /**
  * Places whip sprites at Simon's current (post-movement) screen position.
  * Call once per game frame, immediately after SimonTasks().
  */
-void WhipRender(void);
+void whip_render(void);
 
 #endif /* WHIP_H */

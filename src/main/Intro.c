@@ -44,29 +44,29 @@ static int pillar_prop_idx = -1;
 static void spawn_object(TLN_ObjectInfo const* info) {
   if (!strcasecmp(info->name, "simon")) {
     /* Tiled tile-object y is bottom of sprite; convert to top-left */
-    SimonSetPosition((Coords2d){.x = info->x, .y = info->y - info->height});
+    simon_set_position((Coords2d){.x = info->x, .y = info->y - info->height});
   } else if (!strcasecmp(info->name, "sandblock")) {
-    SandblockSpawn(info->x, info->y - info->height);
+    sandblock_spawn(info->x, info->y - info->height);
   } else if (!strcasecmp(info->name, "torch")) {
-    if (TorchSpawn(info->x, info->y - info->height) < 0) {
+    if (torch_spawn(info->x, info->y - info->height) < 0) {
       fprintf(stderr, "[objects] could not spawn torch at (%d,%d)\n", info->x, info->y);
     }
   } else if (!strcasecmp(info->name, "moon")) {
     /* Screen-fixed; renders behind all tilemap layers */
-    if (PropSpawnBackground(info->name, info->x, info->y) < 0) {
+    if (prop_spawn_background(info->name, info->x, info->y) < 0) {
       fprintf(stderr, "[objects] could not spawn background prop 'moon' at (%d,%d)\n", info->x, info->y);
     }
   } else if (!strcasecmp(info->name, "chain")) {
-    chain_prop_idx = PropSpawn(info->name, info->x, info->y);
+    chain_prop_idx = prop_spawn(info->name, info->x, info->y);
     if (chain_prop_idx < 0) {
       fprintf(stderr, "[objects] could not spawn prop 'chain' at (%d,%d)\n", info->x, info->y);
     }
   } else if (!strcasecmp(info->name, "pillar")) {
-    pillar_prop_idx = PropSpawn(info->name, info->x, info->y);
+    pillar_prop_idx = prop_spawn(info->name, info->x, info->y);
     if (pillar_prop_idx < 0) {
       fprintf(stderr, "[objects] could not spawn prop 'pillar' at (%d,%d)\n", info->x, info->y);
     }
-  } else if (PropSpawn(info->name, info->x, info->y) < 0) {
+  } else if (prop_spawn(info->name, info->x, info->y) < 0) {
     fprintf(stderr, "[objects] could not spawn prop '%s' at (%d,%d)\n", info->name, info->x, info->y);
   }
 }
@@ -76,19 +76,19 @@ static void spawn_object(TLN_ObjectInfo const* info) {
  * of the hinge.  The bridge floor itself is set before SimonTasks() via
  * SimonSetBridgeFloor() so physics handles the surface — no snap needed. */
 static void push_simon_on_bridge(bool db_active) {
-  if (!db_active || DrawbridgeGetProgress() >= DB_STEPS - 1) {
+  if (!db_active || drawbridge_get_progress() >= DB_STEPS - 1) {
     return;
   }
-  if (SimonGetScreenX() >= DrawbridgeHingeX()) {
+  if (simon_get_screen_x() >= drawbridge_hinge_x()) {
     return;
   }
   static int frame = 0;
   frame++;
-  int progress = DrawbridgeGetProgress();
+  int progress = drawbridge_get_progress();
   int stage = progress / 30 < 3 ? progress / 30 : 3;
   static const int interval[4] = {8, 4, 2, 1};
   if (frame % interval[stage] == 0) {
-    SimonPushRight(1);
+    simon_push_right(1);
   }
 }
 
@@ -127,15 +127,15 @@ static void load_objects(void) {
 
 /* Ensures Simon renders above props, then brings chain/pillar to the front. */
 static void setup_entity_priorities(void) {
-  SimonBringToFront();
+  simon_bring_to_front();
   if (pillar_prop_idx >= 0) {
-    PropBringToFront(pillar_prop_idx);
-    PropSetPriority(pillar_prop_idx, true);
-    PropEnableBlendMask(pillar_prop_idx, true);
+    prop_bring_to_front(pillar_prop_idx);
+    prop_set_priority(pillar_prop_idx, true);
+    prop_enable_blend_mask(pillar_prop_idx, true);
   }
   if (chain_prop_idx >= 0) {
-    PropBringToFront(chain_prop_idx);
-    PropSetPriority(chain_prop_idx, true);
+    prop_bring_to_front(chain_prop_idx);
+    prop_set_priority(chain_prop_idx, true);
   }
 }
 
@@ -143,8 +143,8 @@ static void setup_entity_priorities(void) {
  * Screen x and y are looked up directly from baked tables. */
 static void tick_chain_prop(bool db_triggered, int xpos) {
   if ((int)db_triggered && chain_prop_idx >= 0) {
-    ChainPos chainpos = DrawbridgeChainPos();
-    PropSetWorldPos(chain_prop_idx, chainpos.x + xpos, chainpos.y);
+    ChainPos chainpos = drawbridge_chain_pos();
+    prop_set_world_pos(chain_prop_idx, chainpos.x + xpos, chainpos.y);
   }
 }
 
@@ -202,17 +202,17 @@ int main(int argc, const char* argv[]) {
   TLN_SetLayerTilemap(WATER_LAYER, drawbridge_water);
   TLN_SetLayerTilemap(MAIN_LAYER, drawbridge_main);
 
-  DrawbridgeInit(DB_LAYER, g_hinge_x, g_hinge_y);
+  drawbridge_init(DB_LAYER, g_hinge_x, g_hinge_y);
 
   TLN_SetLayerTilemap(HUD_LAYER, hud);
   TLN_SetLayerPriority(HUD_LAYER, true);
 
-  SimonInit();
-  SandblockInit();
-  TorchInit();
-  PropInit();
-  HudInit(hud);
-  WhipInit();
+  simon_init();
+  sandblock_init();
+  torch_init();
+  prop_init();
+  hud_init(hud);
+  whip_init();
 
   /* place entities from the object layer */
   load_objects();
@@ -278,18 +278,18 @@ int main(int argc, const char* argv[]) {
      * Guard on db_triggered (not rails_triggered): the bridge only animates
      * after xpos >= DB_TRIGGER_X; before that, normal tile floor collision must
      * apply for the castle approach geometry to work correctly. */
-    SimonClearBridgeFloor();
-    if ((int)db_triggered && SimonGetScreenX() < DrawbridgeHingeX()) {
-      SimonSetBridgeFloor(DrawbridgeSurfaceY(SimonGetScreenX()) + db_floor_offset);
-      SimonSetBridgeTolerance(DrawbridgeGetProgress() * 32 / (DB_STEPS - 1));
+    simon_clear_bridge_floor();
+    if ((int)db_triggered && simon_get_screen_x() < drawbridge_hinge_x()) {
+      simon_set_bridge_floor(drawbridge_surface_y(simon_get_screen_x()) + db_floor_offset);
+      simon_set_bridge_tolerance(drawbridge_get_progress() * 32 / (DB_STEPS - 1));
     }
-    WhipTasks();
-    SimonTasks();
-    WhipRender();
-    HudTasks();
+    whip_tasks();
+    simon_tasks();
+    whip_render();
+    hud_tasks();
 
     /* scroll */
-    xpos = SimonGetPosition();
+    xpos = simon_get_position();
 
     /* Rails: once xpos reaches RAILS_TRIGGER_X the camera locks and
      * auto-scrolls right at 3 pixels per frame. */
@@ -297,8 +297,8 @@ int main(int argc, const char* argv[]) {
       rails_triggered = true;
       rails_pos = xpos;
       rails_max = TLN_GetLayerWidth(MAIN_LAYER) - WIDTH;
-      SimonFreezeCamera();
-      SimonSetScreenX(SimonGetScreenX() + 8);
+      simon_freeze_camera();
+      simon_set_screen_x(simon_get_screen_x() + 8);
     }
     int camera_delta = 0;
     if (rails_triggered) {
@@ -314,8 +314,8 @@ int main(int argc, const char* argv[]) {
       camera_delta = xpos - prev_xpos;
     }
 
-    if ((int)db_triggered && DrawbridgeGetProgress() < DB_STEPS - 1 && (int)DrawbridgeTick()) {
-      DrawbridgeAdvance();
+    if ((int)db_triggered && drawbridge_get_progress() < DB_STEPS - 1 && (int)drawbridge_tick()) {
+      drawbridge_advance();
     }
 
     /* drawbridge animation: triggered once xpos reaches DB_TRIGGER_X, then runs
@@ -337,15 +337,15 @@ int main(int argc, const char* argv[]) {
        * Y to a screen-space coordinate so DrawbridgeSurfaceY returns the
        * correct screen Y for the bridge surface (otherwise Simon sinks
        * DB_LAYER_Y_OFFSET px into the bridge surface). */
-      DrawbridgeSetHinge(g_hinge_x, g_hinge_y - DB_LAYER_Y_OFFSET);
+      drawbridge_set_hinge(g_hinge_x, g_hinge_y - DB_LAYER_Y_OFFSET);
       /* Capture how far hinge_y is from Simon's actual tile-top feet position
        * so that DrawbridgeSurfaceY can be corrected on every subsequent frame. */
-      db_floor_offset = (SimonGetFeetY() - DrawbridgeSurfaceY(SimonGetScreenX())) - 2;
+      db_floor_offset = (simon_get_feet_y() - drawbridge_surface_y(simon_get_screen_x())) - 2;
     }
 
     /* Hard clamp: once the bridge is fully raised it acts as a wall */
-    if (DrawbridgeGetProgress() >= DB_STEPS - 1 && SimonGetScreenX() < DrawbridgeHingeX()) {
-      SimonSetScreenX(DrawbridgeHingeX());
+    if (drawbridge_get_progress() >= DB_STEPS - 1 && simon_get_screen_x() < drawbridge_hinge_x()) {
+      simon_set_screen_x(drawbridge_hinge_x());
     }
 
     /* Compensate Simon's screen x for camera movement so his world position
@@ -353,7 +353,7 @@ int main(int argc, const char* argv[]) {
      * SimonTasks() is preserved because it changes screen x before this
      * correction. Stop compensating once the drawbridge takes over. */
     if ((int)rails_triggered && !db_triggered) {
-      SimonSetScreenX(SimonGetScreenX() - camera_delta);
+      simon_set_screen_x(simon_get_screen_x() - camera_delta);
     }
 
     /* Keep Simon's internal world-x in sync with the camera so that tile
@@ -362,7 +362,7 @@ int main(int argc, const char* argv[]) {
      * rails-trigger point while xpos advances, causing check_floor to miss
      * the floor tiles and making Simon fall through the ground. */
     if (rails_triggered) {
-      SimonSetWorldX(xpos);
+      simon_set_world_x(xpos);
     }
 
     /* Camera is locked by SimonFreezeCamera(); xpos stays at its
@@ -371,10 +371,10 @@ int main(int argc, const char* argv[]) {
 
     tick_chain_prop(db_triggered, xpos);
 
-    SandblockTasks(xpos);
-    TorchTasks(xpos);
-    PropTasks(xpos);
-    DrawbridgeTasks();
+    sandblock_tasks(xpos);
+    torch_tasks(xpos);
+    prop_tasks(xpos);
+    drawbridge_tasks();
     update_layer_positions(xpos, db_triggered, &prev_xpos);
 
     /* render to window */
@@ -388,11 +388,11 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  PropDeinit();
-  TorchDeinit();
-  SandblockDeinit();
-  SimonDeinit();
-  WhipDeinit();
+  prop_deinit();
+  torch_deinit();
+  sandblock_deinit();
+  simon_deinit();
+  whip_deinit();
   TLN_DeleteTilemap(collision);
   TLN_DeleteTilemap(drawbridge_bg);
   TLN_DeleteTilemap(drawbridge_water);

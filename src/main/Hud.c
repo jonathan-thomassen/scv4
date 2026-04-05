@@ -53,14 +53,14 @@ static void update_display(void) {
   write_digit((TimerCoords){TIMER_COL + 2, timer_value % 10});
 }
 
-void HudInit(TLN_Tilemap tilemap) {
+void hud_init(TLN_Tilemap tilemap) {
   hud_tilemap = tilemap;
   timer_value = TIMER_START;
   frame_count = 0;
   update_display();
 }
 
-void HudTasks(void) {
+void hud_tasks(void) {
   if (timer_value <= 0) {
     return;
   }

@@ -60,7 +60,7 @@ static int find_or_load_type(const char* name) {
   return num_types++;
 }
 
-void PropInit(void) {
+void prop_init(void) {
   num_types = 0;
   for (int i = 0; i < MAX_PROPS; i++) {
     props[i].active = false;
@@ -69,7 +69,7 @@ void PropInit(void) {
   }
 }
 
-void PropDeinit(void) {
+void prop_deinit(void) {
   for (int i = 0; i < MAX_PROPS; i++) {
     props[i].active = false;
     TLN_DisableSprite(SPRITE_BASE + i);
@@ -87,7 +87,7 @@ void PropDeinit(void) {
   num_types = 0;
 }
 
-int PropSpawn(const char* name, int world_x, int world_y) {
+int prop_spawn(const char* name, int world_x, int world_y) {
   int type_idx = find_or_load_type(name);
   if (type_idx < 0) {
     return -1;
@@ -112,7 +112,7 @@ int PropSpawn(const char* name, int world_x, int world_y) {
   return -1; /* no free slot */
 }
 
-int PropSpawnBackground(const char* name, int screen_x, int screen_y) {
+int prop_spawn_background(const char* name, int screen_x, int screen_y) {
   int type_idx = find_or_load_type(name);
   if (type_idx < 0) {
     return -1;
@@ -142,7 +142,7 @@ int PropSpawnBackground(const char* name, int screen_x, int screen_y) {
   return -1; /* no free slot */
 }
 
-void PropTasks(int xworld) {
+void prop_tasks(int xworld) {
   for (int i = 0; i < MAX_PROPS; i++) {
     if (!props[i].active) {
       continue;
@@ -161,7 +161,7 @@ void PropTasks(int xworld) {
   }
 }
 
-void PropSetWorldPos(int idx, int world_x, int world_y) {
+void prop_set_world_pos(int idx, int world_x, int world_y) {
   if (idx < 0 || idx >= MAX_PROPS || !props[idx].active) {
     return;
   }
@@ -169,14 +169,14 @@ void PropSetWorldPos(int idx, int world_x, int world_y) {
   props[idx].world_y = world_y;
 }
 
-void PropEnableBlendMask(int idx, bool enable) {
+void prop_enable_blend_mask(int idx, bool enable) {
   if (idx < 0 || idx >= MAX_PROPS || !props[idx].active) {
     return;
   }
   TLN_EnableSpriteFlag(SPRITE_BASE + idx, SPRITE_FLAG_BLEND_MASK, enable);
 }
 
-void PropBringToFront(int idx) {
+void prop_bring_to_front(int idx) {
   if (idx < 0 || idx >= MAX_PROPS || !props[idx].active) {
     return;
   }
@@ -192,7 +192,7 @@ void PropBringToFront(int idx) {
   }
 }
 
-void PropSetPriority(int idx, bool enable) {
+void prop_set_priority(int idx, bool enable) {
   if (idx < 0 || idx >= MAX_PROPS || !props[idx].active) {
     return;
   }

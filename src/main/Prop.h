@@ -11,10 +11,10 @@
 #define MAX_PROP_TYPES 8
 
 /** Initialises the prop system. Call once before PropSpawn(). */
-void PropInit(void);
+void prop_init(void);
 
 /** Frees all prop spritesets and disables all prop sprites. */
-void PropDeinit(void);
+void prop_deinit(void);
 
 /**
  * Spawns a static prop at the given world position.
@@ -27,7 +27,7 @@ void PropDeinit(void);
  * \param world_y   World y position (pixels from map origin, top edge)
  * \return          Slot index on success, -1 if no free slot or load failed
  */
-int PropSpawn(const char* name, int world_x, int world_y);
+int prop_spawn(const char* name, int world_x, int world_y);
 
 /**
  * Spawns a screen-fixed background prop rendered behind all tilemap layers.
@@ -41,7 +41,7 @@ int PropSpawn(const char* name, int world_x, int world_y);
  * \param screen_y  Fixed screen y position (pixels from top edge)
  * \return          Slot index on success, -1 if no free slot or load failed
  */
-int PropSpawnBackground(const char* name, int screen_x, int screen_y);
+int prop_spawn_background(const char* name, int screen_x, int screen_y);
 
 /**
  * Repositions all active prop sprites to match the current scroll offset.
@@ -49,7 +49,7 @@ int PropSpawnBackground(const char* name, int screen_x, int screen_y);
  *
  * \param xworld  Current horizontal world scroll offset
  */
-void PropTasks(int xworld);
+void prop_tasks(int xworld);
 
 /**
  * Overrides the world position of a spawned prop.
@@ -58,7 +58,7 @@ void PropTasks(int xworld);
  * \param world_x  New world x position
  * \param world_y  New world y position
  */
-void PropSetWorldPos(int idx, int world_x, int world_y);
+void prop_set_world_pos(int idx, int world_x, int world_y);
 
 /**
  * Re-inserts a prop at the tail of Tilengine's sprite render list so it
@@ -66,7 +66,7 @@ void PropSetWorldPos(int idx, int world_x, int world_y);
  *
  * \param idx  Slot index returned by PropSpawn()
  */
-void PropBringToFront(int idx);
+void prop_bring_to_front(int idx);
 
 /**
  * Sets or clears FLAG_PRIORITY on a prop sprite so it renders after priority
@@ -75,7 +75,7 @@ void PropBringToFront(int idx);
  * \param idx     Slot index returned by PropSpawn()
  * \param enable  true to enable priority rendering, false to disable
  */
-void PropSetPriority(int idx, bool enable);
+void prop_set_priority(int idx, bool enable);
 
 /**
  * Enables or disables per-pixel blend-mask rendering on a prop sprite.
@@ -86,6 +86,6 @@ void PropSetPriority(int idx, bool enable);
  * \param idx     Slot index returned by PropSpawn()
  * \param enable  true to enable blend-mask compositing, false to disable
  */
-void PropEnableBlendMask(int idx, bool enable);
+void prop_enable_blend_mask(int idx, bool enable);
 
 #endif

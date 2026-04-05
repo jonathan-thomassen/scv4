@@ -24,7 +24,7 @@ static TLN_Spriteset spriteset;
 static TLN_SequencePack seq_pack;
 static Torch torches[MAX_TORCHES];
 
-void TorchInit(void) {
+void torch_init(void) {
   spriteset = TLN_LoadSpriteset("torch");
   seq_pack = TLN_LoadSequencePack("torch.sqx");
   for (int i = 0; i < MAX_TORCHES; i++) {
@@ -33,7 +33,7 @@ void TorchInit(void) {
   }
 }
 
-void TorchDeinit(void) {
+void torch_deinit(void) {
   for (int i = 0; i < MAX_TORCHES; i++) {
     TLN_DisableSprite(SPRITE_BASE + i);
   }
@@ -47,7 +47,7 @@ void TorchDeinit(void) {
   spriteset = NULL;
 }
 
-int TorchSpawn(int world_x, int world_y) {
+int torch_spawn(int world_x, int world_y) {
   for (int i = 0; i < MAX_TORCHES; i++) {
     if (torches[i].active) {
       continue;
@@ -66,7 +66,7 @@ int TorchSpawn(int world_x, int world_y) {
   return -1; /* no free slot */
 }
 
-void TorchTasks(int xworld) {
+void torch_tasks(int xworld) {
   for (int i = 0; i < MAX_TORCHES; i++) {
     if (!torches[i].active) {
       continue;
