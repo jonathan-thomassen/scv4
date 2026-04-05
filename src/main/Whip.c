@@ -76,12 +76,12 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
     }
   }
 
-  TLN_Spriteset spriteset = TLN_CreateSpriteset(bmp, data, total);
+  TLN_Spriteset spriteset_inner = TLN_CreateSpriteset(bmp, data, total);
   free(data);
   /* Do NOT delete bmp here — the spriteset holds a reference to it.
    * The caller is responsible for deleting it after the spriteset is freed. */
   *out_bitmap = bmp;
-  return spriteset;
+  return spriteset_inner;
 }
 
 /*
