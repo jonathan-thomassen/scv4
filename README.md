@@ -1,4 +1,4 @@
-# SC4
+# SCV4
 
 A game built on the [Tilengine](https://github.com/megamarc/Tilengine) retro-graphics engine.
 
