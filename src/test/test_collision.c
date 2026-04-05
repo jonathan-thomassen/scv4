@@ -304,7 +304,7 @@ TEST(test_move_down_solid) {
   int dx = 0;
   int dy = 4;
   resolve_collision(T_WORLD_X, T_SPRITE_X, T_SPRITE_Y, &dx, &dy);
-  ASSERT_EQ(dy, 2);
+  ASSERT_EQ(dy, 1);
   ASSERT_EQ(dx, 0);
 }
 
@@ -409,7 +409,7 @@ TEST(test_move_down_right_floor) {
   int dx = 4;
   int dy = 4;
   resolve_collision(T_WORLD_X, T_SPRITE_X, T_SPRITE_Y, &dx, &dy);
-  ASSERT_EQ(dy, 2);
+  ASSERT_EQ(dy, 1);
   ASSERT_EQ(dx, 4);
 }
 
@@ -1104,7 +1104,7 @@ TEST(test_dr_probe_a1b_v_only) {
   int dy = 7;
   move_down_right_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
   ASSERT_EQ(dx, 8);
-  ASSERT_EQ(dy, 1); /* 7 - 6 */
+  ASSERT_EQ(dy, 0); /* 7 - (6 + 1) */
 }
 
 TEST(test_dr_probe_a2a_h_only) {
@@ -1125,7 +1125,7 @@ TEST(test_dr_probe_a2b_h_and_v) {
   int dy = 7;
   move_down_right_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
   ASSERT_EQ(dx, 7);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 TEST(test_dr_probe_b1_hv_only) {
@@ -1135,7 +1135,7 @@ TEST(test_dr_probe_b1_hv_only) {
   int dy = 7;
   move_down_right_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
   /* For down-right: y_overlap > x_overlap → B1b → dy clamped */
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
   ASSERT_EQ(dx, 8);
 }
 
@@ -1146,7 +1146,7 @@ TEST(test_dr_probe_b2_hv_and_v) {
   int dx = 8;
   int dy = 7;
   move_down_right_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
   ASSERT_EQ(dx, 8);
 }
 
@@ -1170,7 +1170,7 @@ TEST(test_dr_probe_d_all_solid) {
   int dy = 7;
   move_down_right_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
   ASSERT_EQ(dx, 7);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 /* ========================================================================
@@ -1184,7 +1184,7 @@ TEST(test_dl_probe_a1b_v_only) {
   int dy = 7;
   move_down_left_probe_down_left(B_WX, B_SX, B_SY, &dx, &dy);
   ASSERT_EQ(dx, -8);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 TEST(test_dl_probe_a2a_h_only) {
@@ -1204,7 +1204,7 @@ TEST(test_dl_probe_b1_hv_only) {
   int dy = 7;
   move_down_left_probe_down_left(B_WX, B_SX, B_SY, &dx, &dy);
   /* For down-left: y_overlap > |x_overlap| → B1b → dy clamped */
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
   ASSERT_EQ(dx, -8);
 }
 
@@ -1228,7 +1228,7 @@ TEST(test_dl_probe_d_all_solid) {
   int dy = 7;
   move_down_left_probe_down_left(B_WX, B_SX, B_SY, &dx, &dy);
   ASSERT_EQ(dx, -2);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 /* ========================================================================
@@ -1379,7 +1379,7 @@ TEST(test_dr_secondary_down_left_hv_solid) {
   int dx = 8;
   int dy = 7;
   move_down_right_probe_down_left(B_WX, B_SX, B_SY, &dx, &dy);
-  ASSERT_EQ(dy, 1); /* 7 - 6 */
+  ASSERT_EQ(dy, 0); /* 7 - (6 + 1) */
 }
 
 TEST(test_dr_secondary_down_left_v_solid) {
@@ -1423,7 +1423,7 @@ TEST(test_dl_secondary_down_right_hv_solid) {
   int dx = -8;
   int dy = 7;
   move_down_left_probe_down_right(B_WX, B_SX, B_SY, &dx, &dy);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 TEST(test_dl_secondary_down_right_v_solid) {
@@ -1541,7 +1541,7 @@ TEST(test_resolve_dr_full_chain) {
   int dx = 8;
   int dy = 7;
   resolve_collision(B_WX, B_SX, B_SY, &dx, &dy);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 TEST(test_resolve_dl_full_chain) {
@@ -1551,7 +1551,7 @@ TEST(test_resolve_dl_full_chain) {
   int dx = -8;
   int dy = 7;
   resolve_collision(B_WX, B_SX, B_SY, &dx, &dy);
-  ASSERT_EQ(dy, 1);
+  ASSERT_EQ(dy, 0);
 }
 
 int main(void) {
