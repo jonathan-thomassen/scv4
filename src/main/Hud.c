@@ -22,6 +22,12 @@
  */
 #define TIMER_COL       26
 
+/* Divisor to extract the hundreds digit from the timer value. */
+#define TIMER_HUNDREDS  100
+
+/* Divisor to extract the tens digit from the timer value. */
+#define TIMER_TENS      10
+
 /* Number of in-game frames between each timer decrement. */
 #define FRAMES_PER_TICK 60
 
@@ -48,9 +54,9 @@ static void write_digit(TimerCoords coords) {
 
 /* Decomposes timer_value into three digits and writes them to the tilemap. */
 static void update_display(void) {
-  write_digit((TimerCoords){TIMER_COL, timer_value / 100});
-  write_digit((TimerCoords){TIMER_COL + 1, (timer_value / 10) % 10});
-  write_digit((TimerCoords){TIMER_COL + 2, timer_value % 10});
+  write_digit((TimerCoords){TIMER_COL, timer_value / TIMER_HUNDREDS});
+  write_digit((TimerCoords){TIMER_COL + 1, (timer_value / TIMER_TENS) % TIMER_TENS});
+  write_digit((TimerCoords){TIMER_COL + 2, timer_value % TIMER_TENS});
 }
 
 void hud_init(TLN_Tilemap tilemap) {

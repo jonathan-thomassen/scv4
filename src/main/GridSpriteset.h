@@ -57,6 +57,7 @@ typedef struct {
  * max_stages and max_segs clamp the parser to the caller's array limits
  * (must not exceed MAP_MAX_STAGES / MAP_MAX_SEGS).
  */
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void load_map_section(const char* filename, const char* section, int max_stages, int max_segs, MapSection* out);
 
 #endif /* GRID_SPRITESET_H */

@@ -9,6 +9,7 @@
 
 #define MAX_FILENAME_LEN 64
 #define MAX_LINE_LEN     64
+#define MAX_FLAGS_LEN    8
 
 TLN_Spriteset load_grid_spriteset(const char* base_name, TLN_Bitmap* out_bitmap) {
   char txt_name[MAX_FILENAME_LEN];
@@ -75,6 +76,7 @@ TLN_Spriteset load_grid_spriteset(const char* base_name, TLN_Bitmap* out_bitmap)
   return spriteset;
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void load_map_section(const char* filename, const char* section, int max_stages, int max_segs, MapSection* out) {
   out->num_stages = 0;
   for (int stage = 0; stage < MAP_MAX_STAGES; stage++) {
@@ -88,10 +90,10 @@ void load_map_section(const char* filename, const char* section, int max_stages,
 
   bool in_section = false;
   int cur_stage = -1;
-  char line[128];
+  char line[MAX_LINE_LEN * 2];
   while (fgets(line, sizeof(line), file) != NULL) {
     if (line[0] == '#') {
-      char name[64] = "";
+      char name[MAX_FILENAME_LEN] = "";
       sscanf(line, "# %63s", name);
       in_section = (strcmp(name, section) == 0);
       cur_stage = -1;
@@ -117,7 +119,7 @@ void load_map_section(const char* filename, const char* section, int max_stages,
     int pic = -1;
     int displacement_x = 0;
     int displacement_y = 0;
-    char flags[8] = "";
+    char flags[MAX_FLAGS_LEN] = "";
 
     int matched = sscanf(line, " s%d = ( %d , %d ) %7s", &pic, &displacement_x, &displacement_y, flags);
     if (matched < 3 || pic < 0) {

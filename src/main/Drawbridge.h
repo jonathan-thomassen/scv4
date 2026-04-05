@@ -9,13 +9,13 @@
 typedef struct {
   int x;
   int y;
-} ChainPos;
+} Vec2i;
 
-void drawbridge_init(int layer, int hinge_x, int hinge_y);
+void drawbridge_init(int layer, Vec2i hinge);
 /** Advance the animation by one step. Does nothing when already at the last frame. */
 void drawbridge_advance(void);
 int drawbridge_get_progress(void);
-void drawbridge_set_hinge(int hinge_x, int hinge_y);
+void drawbridge_set_hinge(Vec2i hinge);
 void drawbridge_tasks(void);
 
 /**
@@ -41,6 +41,6 @@ int drawbridge_hinge_x(void);
  * current animation step.  Add xpos to .x to get the world x coordinate.
  * .y is the fully-baked world y (sprite height and drift already folded in).
  */
-ChainPos drawbridge_chain_pos(void);
+Vec2i drawbridge_chain_pos(void);
 
 #endif
