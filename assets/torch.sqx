@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<sequences>
+	<sequence name="torch" delay="4" loop="0">
+		0,1
+	</sequence>
+</sequences>

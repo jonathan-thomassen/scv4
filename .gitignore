@@ -1,0 +1,31 @@
+# Build outputs
+build/
+cmake-build-*/
+out/
+
+# IDE
+.vs/
+.vscode/
+*.user
+CMakeSettings.json
+CMakePresets.json
+
+# Compiled objects
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Coverage
+*.gcda
+*.gcno
+coverage.html
+coverage.txt
+
+# OS
+.DS_Store
+Thumbs.db

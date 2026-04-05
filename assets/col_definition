@@ -1,0 +1,812 @@
+// Definitions for collision probing based on an 
+// up-right pointing movement vector
+//
+// Legend:
+// B = Block
+// V = Valid movement vector
+// - = Invalid movement vector
+// P = Sprite colission
+// * = Probe position
+
+# 8x1
+B,-,-,-,-,-,-,-,V
+B,-,-,-,-,-,-,V,V
+B,-,-,-,-,-,V,V,V
+B,-,-,-,-,V,V,V,V
+B,-,-,-,V,V,V,V,V
+B,-,-,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 8x2
+B,B,-,-,-,-,-,-,-
+B,B,-,-,-,-,-,-,-
+B,B,-,-,-,-,-,-,-
+B,B,-,-,-,-,-,-,-
+B,B,-,-,-,-,-,-,-
+B,B,-,-,-,-,-,V,V
+B,B,-,-,-,V,V,V,V
+B,B,-,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 8x3
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,V,V
+B,B,B,-,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 8x4
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 8x5
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,V,V
+*,P,P,P,P,P,P,P,P
+
+# 8x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+*,P,P,P,P,P,P,P,P
+
+# 8x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+*,P,P,P,P,P,P,P,P
+
+# 8x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+*,P,P,P,P,P,P,P,P
+
+# 8x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+*,P,P,P,P,P,P,P,P
+
+# 7x1
+B,-,-,-,V,V,V,V,V
+B,-,-,-,V,V,V,V,V
+B,-,-,V,V,V,V,V,V
+B,-,-,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x2
+B,B,-,-,-,-,-,-,V
+B,B,-,-,-,-,-,V,V
+B,B,-,-,-,-,V,V,V
+B,B,-,-,-,V,V,V,V
+B,B,-,-,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x3
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,-
+B,B,B,-,-,-,-,-,V
+B,B,B,-,-,-,-,V,V
+B,B,B,-,-,V,V,V,V
+B,B,B,-,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x4
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,V,V
+B,B,B,B,-,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x5
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 7x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x1
+B,-,-,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x2
+B,B,-,-,-,-,V,V,V
+B,B,-,-,-,V,V,V,V
+B,B,-,-,V,V,V,V,V
+B,B,-,-,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x3
+B,B,B,-,-,-,-,-,V
+B,B,B,-,-,-,-,V,V
+B,B,B,-,-,-,V,V,V
+B,B,B,-,-,V,V,V,V
+B,B,B,-,V,V,V,V,V
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x4
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,-,-
+B,B,B,B,-,-,-,V,V
+B,B,B,B,-,-,V,V,V
+B,B,B,B,-,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x5
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,V
+B,B,B,B,B,-,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 6x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x1
+B,-,V,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,-,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x2
+B,B,-,-,V,V,V,V,V
+B,B,-,-,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x3
+B,B,B,-,-,-,V,V,V
+B,B,B,-,-,-,V,V,V
+B,B,B,-,-,V,V,V,V
+B,B,B,-,V,V,V,V,V
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x4
+B,B,B,B,-,-,-,-,V
+B,B,B,B,-,-,-,V,V
+B,B,B,B,-,-,V,V,V
+B,B,B,B,-,V,V,V,V
+B,B,B,B,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x5
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,-
+B,B,B,B,B,-,-,-,V
+B,B,B,B,B,-,-,V,V
+B,B,B,B,B,-,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,V
+B,B,B,B,B,B,-,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 5x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x1
+B,-,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x2
+B,B,-,V,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,-,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x3
+B,B,B,-,-,V,V,V,V
+B,B,B,-,V,V,V,V,V
+B,B,B,-,V,V,V,V,V
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x4
+B,B,B,B,-,-,-,V,V
+B,B,B,B,-,-,V,V,V
+B,B,B,B,-,V,V,V,V
+B,B,B,B,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x5
+B,B,B,B,B,-,-,-,V
+B,B,B,B,B,-,-,V,V
+B,B,B,B,B,-,V,V,V
+B,B,B,B,B,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,V
+B,B,B,B,B,B,-,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x6
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,-
+B,B,B,B,B,B,-,-,V
+B,B,B,B,B,B,-,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 4x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x1
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x2
+B,B,-,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x3
+B,B,B,-,V,V,V,V,V
+B,B,B,-,V,V,V,V,V
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x4
+B,B,B,B,-,-,V,V,V
+B,B,B,B,-,V,V,V,V
+B,B,B,B,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x5
+B,B,B,B,B,-,-,V,V
+B,B,B,B,B,-,V,V,V
+B,B,B,B,B,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x6
+B,B,B,B,B,B,-,-,V
+B,B,B,B,B,B,-,V,V
+B,B,B,B,B,B,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x7
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,-
+B,B,B,B,B,B,B,-,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 3x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x1
+B,V,V,V,V,V,V,V,V
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x2
+B,B,V,V,V,V,V,V,V
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x3
+B,B,B,V,V,V,V,V,V
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x4
+B,B,B,B,-,V,V,V,V
+B,B,B,B,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x5
+B,B,B,B,B,-,V,V,V
+B,B,B,B,B,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x6
+B,B,B,B,B,B,-,V,V
+B,B,B,B,B,B,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x7
+B,B,B,B,B,B,B,-,V
+B,B,B,B,B,B,B,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x8
+B,B,B,B,B,B,B,B,-
+B,B,B,B,B,B,B,B,-
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 2x9
+B,B,B,B,B,B,B,B,B
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x1
+B,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x2
+B,B,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x3
+B,B,B,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x4
+B,B,B,B,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x5
+B,B,B,B,B,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x6
+B,B,B,B,B,B,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x7
+B,B,B,B,B,B,B,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x8
+B,B,B,B,B,B,B,B,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
+
+# 1x9
+B,B,B,B,B,B,B,B,B
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+V,V,V,V,V,V,V,V,V
+*,P,P,P,P,P,P,P,P
