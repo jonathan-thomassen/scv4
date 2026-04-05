@@ -120,7 +120,7 @@ void SandblockTasks(int xworld) {
   }
 }
 
-bool SandblockGet(int index, SandblockState *out) {
+bool SandblockGet(int index, SandblockState* out) {
   if (index < 0 || index >= MAX_SANDBLOCKS || !blocks[index].active) {
     return false;
   }

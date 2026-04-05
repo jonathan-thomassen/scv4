@@ -14,7 +14,7 @@
 #define WHIP_SPRITE_BASE (1 + MAX_SANDBLOCKS + MAX_TORCHES + MAX_PROPS + MAX_SIMON_SPRITES)
 
 /** Total duration of a whip swing, in game frames. */
-#define WHIP_DURATION 18
+#define WHIP_DURATION    18
 
 /**
  * Loads the whip0 spriteset and clears the sprite slot.

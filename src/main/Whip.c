@@ -10,9 +10,9 @@
 #include "Simon.h"    /* SimonGetScreenX/Y, SimonFacingRight      */
 #include "Tilengine.h"
 
-#define SEG_SIZE 8        /* each subsprite is 8x8 px                     */
+#define SEG_SIZE       8  /* each subsprite is 8x8 px                     */
 #define SIMON_SPRITE_W 32 /* width of Simon's sprite in pixels             */
-#define NUM_STAGES 3      /* number of whip animation stages               */
+#define NUM_STAGES     3  /* number of whip animation stages               */
 
 /*
  * Loads a spriteset from a compact grid-format txt file + matching PNG.
@@ -24,9 +24,8 @@
  * Tile rows are derived from the bitmap height.  Sprites are named
  * s0, s1, … sN in row-major order.
  */
-static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_name,
-                                         TLN_Bitmap *out_bitmap) {
-  FILE *file = FileOpen(txt_name);
+static TLN_Spriteset load_grid_spriteset(const char* txt_name, const char* png_name, TLN_Bitmap* out_bitmap) {
+  FILE* file = FileOpen(txt_name);
   if (file == NULL) {
     return NULL;
   }
@@ -59,7 +58,7 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
   int rows = TLN_GetBitmapHeight(bmp) / tile_height;
   int total = rows * cols;
 
-  TLN_SpriteData *data = (TLN_SpriteData *)malloc((size_t)total * sizeof(TLN_SpriteData));
+  TLN_SpriteData* data = (TLN_SpriteData*)malloc((size_t)total * sizeof(TLN_SpriteData));
   if (data == NULL) {
     TLN_DeleteBitmap(bmp);
     return NULL;
@@ -67,7 +66,7 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
 
   for (int row = 0; row < rows; row++) {
     for (int column = 0; column < cols; column++) {
-      TLN_SpriteData *sprite_data = &data[(row * cols) + column];
+      TLN_SpriteData* sprite_data = &data[(row * cols) + column];
       snprintf(sprite_data->name, sizeof(sprite_data->name), "s%d", (row * cols) + column);
       sprite_data->x = column * tile_width;
       sprite_data->y = row * tile_height;
@@ -91,7 +90,7 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
  * control returns to Simon.  Add or change values here to adjust timing.
  */
 static const int stage_durations[NUM_STAGES] = {
-    5, 5, 13}; /* 5 frames for stage 0, 5 frames for stage 1, 13 frames for stage 2 */
+  5, 5, 13}; /* 5 frames for stage 0, 5 frames for stage 1, 13 frames for stage 2 */
 
 /* Returns the total number of frames across all stages. */
 static int total_visible_frames(void) {
@@ -179,8 +178,8 @@ static void disable_all_segments(void) {
  * subsequent stage lines to be ignored until the matching group is found.
  * Blank lines and unrecognised lines are silently skipped.
  */
-static void load_map_file(const char *filename, const char *section, WhipStage *dest) {
-  FILE *file = FileOpen(filename);
+static void load_map_file(const char* filename, const char* section, WhipStage* dest) {
+  FILE* file = FileOpen(filename);
   if (file == NULL) {
     return;
   }
@@ -218,13 +217,12 @@ static void load_map_file(const char *filename, const char *section, WhipStage *
     int displacement_y = 0;
     char flags[8] = "";
 
-    int matched =
-        sscanf(line, " s%d = ( %d , %d ) %7s", &pic, &displacement_x, &displacement_y, flags);
+    int matched = sscanf(line, " s%d = ( %d , %d ) %7s", &pic, &displacement_x, &displacement_y, flags);
     if (matched < 3 || pic < 0) {
       continue;
     }
 
-    WhipSeg *segment = &dest[cur_stage].segs[dest[cur_stage].count];
+    WhipSeg* segment = &dest[cur_stage].segs[dest[cur_stage].count];
     segment->pic = pic;
     segment->dx = displacement_x;
     segment->dy = displacement_y;
@@ -316,12 +314,12 @@ void WhipRender(void) {
   int stage = last_rendered_stage;
   int sprite_x = SimonGetScreenX();
   int sprite_y = SimonGetScreenY();
-  const WhipStage *active_stages = (int)swing_up ? up_stages : stages;
+  const WhipStage* active_stages = (int)swing_up ? up_stages : stages;
   int count = active_stages[stage].count;
 
   for (int seg = 0; seg < MAX_WHIP_SPRITES; seg++) {
     if (seg < count) {
-      const WhipSeg *segment = &active_stages[stage].segs[seg];
+      const WhipSeg* segment = &active_stages[stage].segs[seg];
       int world_x;
       bool flip_h;
       if (swing_facing_right) {

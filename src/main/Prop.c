@@ -10,7 +10,7 @@
 #include "Torch.h" /* for MAX_TORCHES */
 
 /* Prop sprite slots follow sandblocks and torches. */
-#define SPRITE_BASE (1 + MAX_SANDBLOCKS + MAX_TORCHES)
+#define SPRITE_BASE           (1 + MAX_SANDBLOCKS + MAX_TORCHES)
 
 /* Props scrolled more than this many pixels past the left screen edge are
  * permanently deactivated; chosen to exceed the widest possible prop sprite. */
@@ -37,7 +37,7 @@ static Prop props[MAX_PROPS];
 
 /* Returns the type index for name, loading the spriteset if not seen before.
  * Returns -1 if the spriteset could not be loaded or the type table is full. */
-static int find_or_load_type(const char *name) {
+static int find_or_load_type(const char* name) {
   for (int i = 0; i < num_types; i++) {
     if (!strcasecmp(types[i].name, name)) {
       return i;
@@ -87,7 +87,7 @@ void PropDeinit(void) {
   num_types = 0;
 }
 
-int PropSpawn(const char *name, int world_x, int world_y) {
+int PropSpawn(const char* name, int world_x, int world_y) {
   int type_idx = find_or_load_type(name);
   if (type_idx < 0) {
     return -1;
@@ -112,7 +112,7 @@ int PropSpawn(const char *name, int world_x, int world_y) {
   return -1; /* no free slot */
 }
 
-int PropSpawnBackground(const char *name, int screen_x, int screen_y) {
+int PropSpawnBackground(const char* name, int screen_x, int screen_y) {
   int type_idx = find_or_load_type(name);
   if (type_idx < 0) {
     return -1;

@@ -4,7 +4,7 @@
 
 #include "../src/Draw.h" /* g_prof_linebuf/fillmask/blit_ticks */
 
-void prof_init(ProfState *p) {
+void prof_init(ProfState* p) {
   p->freq = SDL_GetPerformanceFrequency();
   p->acc_logic = 0;
   p->acc_render = 0;
@@ -21,12 +21,12 @@ void prof_init(ProfState *p) {
   p->report_t = SDL_GetTicks();
 }
 
-void prof_frame_begin(ProfState *p) { p->frame_start = SDL_GetPerformanceCounter(); }
+void prof_frame_begin(ProfState* p) { p->frame_start = SDL_GetPerformanceCounter(); }
 
-void prof_logic_end(ProfState *p) { p->logic_end = SDL_GetPerformanceCounter(); }
+void prof_logic_end(ProfState* p) { p->logic_end = SDL_GetPerformanceCounter(); }
 
 /* Call after TLN_DrawFrame. Prints a report once per second. */
-void prof_frame_end(ProfState *p, int xpos) {
+void prof_frame_end(ProfState* p, int xpos) {
   Uint64 now = SDL_GetPerformanceCounter();
   Uint64 t_logic = p->logic_end - p->frame_start;
   Uint64 t_render = now - p->logic_end;
@@ -65,17 +65,15 @@ void prof_frame_end(ProfState *p, int xpos) {
     /* everything inside TLN_DrawFrame that isn't layer/sprite CPU work */
     Uint64 us_cpu = us_layers + us_sprites;
     Uint64 us_sdl = us_render > us_cpu ? us_render - us_cpu : 0;
-    fprintf(stderr, "PROF xpos=%4d  render=%5llu us  layers=%5llu  sprites=%4llu  sdl=%5llu  [",
-            xpos, (unsigned long long)us_render, (unsigned long long)us_layers,
-            (unsigned long long)us_sprites, (unsigned long long)us_sdl);
+    fprintf(stderr, "PROF xpos=%4d  render=%5llu us  layers=%5llu  sprites=%4llu  sdl=%5llu  [", xpos,
+            (unsigned long long)us_render, (unsigned long long)us_layers, (unsigned long long)us_sprites,
+            (unsigned long long)us_sdl);
     for (int i = 0; i < 7; i++) {
-      fprintf(stderr, "L%d=%4llu%s", i,
-              (unsigned long long)(p->acc_per_layer[i] * 1000000 / p->freq / s),
+      fprintf(stderr, "L%d=%4llu%s", i, (unsigned long long)(p->acc_per_layer[i] * 1000000 / p->freq / s),
               i < 6 ? "  " : "]\n");
     }
     fprintf(stderr, "      L1 sub: linebuf=%4llu us  fillmask=%4llu us  blit=%4llu us\n",
-            (unsigned long long)us_linebuf, (unsigned long long)us_fillmask,
-            (unsigned long long)us_blit);
+            (unsigned long long)us_linebuf, (unsigned long long)us_fillmask, (unsigned long long)us_blit);
     p->acc_logic = 0;
     p->acc_render = 0;
     p->acc_frame = 0;

@@ -31,7 +31,7 @@ int TorchSpawn(int world_x, int world_y);
 void TorchTasks(int xworld);
 
 /** Pixel dimensions of one torch — needed for AABB tests in Simon.c. */
-#define TORCH_WIDTH 16
+#define TORCH_WIDTH  16
 #define TORCH_HEIGHT 16
 
 #endif

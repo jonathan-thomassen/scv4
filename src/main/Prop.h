@@ -2,7 +2,7 @@
 #define PROP_H
 
 /** Maximum number of prop instances that can exist simultaneously. */
-#define MAX_PROPS 16
+#define MAX_PROPS      16
 
 /**
  * Maximum number of distinct spritesets that props can share.
@@ -27,7 +27,7 @@ void PropDeinit(void);
  * \param world_y   World y position (pixels from map origin, top edge)
  * \return          Slot index on success, -1 if no free slot or load failed
  */
-int PropSpawn(const char *name, int world_x, int world_y);
+int PropSpawn(const char* name, int world_x, int world_y);
 
 /**
  * Spawns a screen-fixed background prop rendered behind all tilemap layers.
@@ -41,7 +41,7 @@ int PropSpawn(const char *name, int world_x, int world_y);
  * \param screen_y  Fixed screen y position (pixels from top edge)
  * \return          Slot index on success, -1 if no free slot or load failed
  */
-int PropSpawnBackground(const char *name, int screen_x, int screen_y);
+int PropSpawnBackground(const char* name, int screen_x, int screen_y);
 
 /**
  * Repositions all active prop sprites to match the current scroll offset.

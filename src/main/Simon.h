@@ -21,7 +21,7 @@ typedef struct {
   int scroll_x;
 } Coords2d;
 
-#define COLLISION_LAYER 5
+#define COLLISION_LAYER   5
 
 /* Simon occupies the last sprite slot so he renders on top of all props. */
 /* Simon occupies MAX_SIMON_SPRITES consecutive sprite slots. */

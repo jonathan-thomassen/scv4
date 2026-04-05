@@ -8,25 +8,25 @@
  * tile index (DIGIT_TILE_0 + d).  Adjust if your tileset uses a different
  * layout.
  */
-#define DIGIT_TILE_0 2
+#define DIGIT_TILE_0    2
 
 /*
  * Tilemap row (0-based) that holds the three timer digit cells.
  * Adjust to match the row in hud.tmx where the timer is displayed.
  */
-#define TIMER_ROW 3
+#define TIMER_ROW       3
 
 /*
  * Tilemap column (0-based) of the hundreds digit.
  * The tens digit is at TIMER_COL+1, units at TIMER_COL+2.
  */
-#define TIMER_COL 26
+#define TIMER_COL       26
 
 /* Number of in-game frames between each timer decrement. */
 #define FRAMES_PER_TICK 60
 
 /* Starting value of the countdown timer. */
-#define TIMER_START 450
+#define TIMER_START     450
 
 /* ------------------------------------------------------------------ */
 

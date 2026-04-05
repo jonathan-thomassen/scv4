@@ -21,9 +21,9 @@
  * displacement_x = destination)
  * ------------------------------------------------------------------------- */
 #define COL_THRESH_NONE 9
-#define COL_DEF_MAX_H 8
-#define COL_DEF_MAX_N 9
-#define COL_DEF_ROWS 8
+#define COL_DEF_MAX_H   8
+#define COL_DEF_MAX_N   9
+#define COL_DEF_ROWS    8
 
 static int col_thresh[COL_DEF_MAX_H + 1][COL_DEF_MAX_N + 1][COL_DEF_ROWS];
 
@@ -36,7 +36,7 @@ void load_col_definition(void) {
     }
   }
 
-  FILE *file = FileOpen("col_definition");
+  FILE* file = FileOpen("col_definition");
   if (file == NULL) {
     return;
   }
@@ -68,7 +68,7 @@ void load_col_definition(void) {
     }
 
     int thresh = COL_THRESH_NONE;
-    char *p = line;
+    char* p = line;
     for (int col = 0; col < 9 && thresh == COL_THRESH_NONE; col++) {
       while (*p == ' ') {
         p++;
@@ -116,8 +116,8 @@ void load_col_definition(void) {
  * H, N: grid selector (same semantics as col_definition_lookup, interpreted
  * in the rotated frame).
  */
-static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bool mirror_v,
-                                  int *displacement_x, int *displacement_y) {
+static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bool mirror_v, int* displacement_x,
+                                  int* displacement_y) {
   if (H < 1 || H > COL_DEF_MAX_H || N < 1 || N > COL_DEF_MAX_N) {
     return;
   }
@@ -145,8 +145,7 @@ static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bo
     return;
   }
 
-  int row_idisplacement_x =
-      COL_DEF_ROWS + velocity_y; /* v = orig_displacement_y; row 0 = displacement_y=-8 .. row 7 =
+  int row_idisplacement_x = COL_DEF_ROWS + velocity_y; /* v = orig_displacement_y; row 0 = displacement_y=-8 .. row 7 =
                                     displacement_y=-1 */
   if (row_idisplacement_x < 0 || row_idisplacement_x >= COL_DEF_ROWS) {
     return;
@@ -181,8 +180,7 @@ static void col_definition_lookup(int H, int N, int rotations, bool mirror_h, bo
  * Probing
  * ------------------------------------------------------------------------- */
 
-static void move_left_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                             bool (*probes)[4]) {
+static void move_left_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, bool (*probes)[4]) {
   for (int row = 0; row < 4; row++) {
     if (probes[0][row]) {
       continue;
@@ -201,8 +199,7 @@ static void move_left_probes(int world_x, int sprite_x, int sprite_y, int *displ
   }
 }
 
-static void move_right_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                              bool (*probes)[4]) {
+static void move_right_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, bool (*probes)[4]) {
   for (int row = 0; row < 4; row++) {
     if (probes[1][row]) {
       continue;
@@ -221,8 +218,7 @@ static void move_right_probes(int world_x, int sprite_x, int sprite_y, int *disp
   }
 }
 
-static void move_up_probes(int world_x, int sprite_x, int sprite_y, int *displacement_y,
-                           bool (*probes)[4]) {
+static void move_up_probes(int world_x, int sprite_x, int sprite_y, int* displacement_y, bool (*probes)[4]) {
   for (int column = 0; column < 2; column++) {
     if (probes[column][0]) {
       continue;
@@ -240,17 +236,15 @@ static void move_up_probes(int world_x, int sprite_x, int sprite_y, int *displac
   }
 }
 
-static void move_down_probes(int world_x, int sprite_x, int sprite_y, int *displacement_y,
-                             bool (*probes)[4]) {
+static void move_down_probes(int world_x, int sprite_x, int sprite_y, int* displacement_y, bool (*probes)[4]) {
   for (int colummn = 0; colummn < 2; colummn++) {
     if (probes[colummn][3]) {
       continue;
     }
     TLN_TileInfo v_tile;
     TLN_GetLayerTile(COLLISION_LAYER,
-                     colummn == 0
-                         ? SIMON_COL_LEFT_X(world_x, sprite_x)
-                         : SIMON_COL_LEFT_X(world_x, sprite_x) + (BLOCK_SIZE * colummn) - 1,
+                     colummn == 0 ? SIMON_COL_LEFT_X(world_x, sprite_x)
+                                  : SIMON_COL_LEFT_X(world_x, sprite_x) + (BLOCK_SIZE * colummn) - 1,
                      SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &v_tile);
 
     if (!v_tile.empty) {
@@ -260,14 +254,14 @@ static void move_down_probes(int world_x, int sprite_x, int sprite_y, int *displ
   }
 }
 
-static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y,
-                                         int *displacement_x, int *displacement_y) {
+static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                         int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_TOP_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x),
-                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x), SIMON_COL_TOP_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -310,14 +304,14 @@ static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y
   *displacement_y += TILE_SIZE - v_tile.yoffset;
 }
 
-static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                       int *displacement_y) {
+static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                       int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_TOP_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
-                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), SIMON_COL_TOP_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -339,8 +333,7 @@ static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, 
   }
   if (h_tile.empty) {
     if (v_tile.empty) {
-      int x_overlap =
-          (hv_tile.xoffset + BLOCK_SIZE) - (SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x);
+      int x_overlap = (hv_tile.xoffset + BLOCK_SIZE) - (SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x);
       int y_overlap = hv_tile.yoffset - (SIMON_COL_TOP_Y(sprite_y) + *displacement_y);
       if (y_overlap < x_overlap) {
         *displacement_x += TILE_SIZE - hv_tile.xoffset;
@@ -360,8 +353,8 @@ static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, 
   *displacement_y += TILE_SIZE - v_tile.yoffset;
 }
 
-static void move_down_right_probe_down_right(int world_x, int sprite_x, int sprite_y,
-                                             int *displacement_x, int *displacement_y) {
+static void move_down_right_probe_down_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                             int* displacement_y) {
   TLN_TileInfo h_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_BOTTOM_Y(sprite_y), &h_tile);
@@ -409,14 +402,14 @@ static void move_down_right_probe_down_right(int world_x, int sprite_x, int spri
   *displacement_y -= v_tile.yoffset;
 }
 
-static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite_y,
-                                           int *displacement_x, int *displacement_y) {
+static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                           int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_BOTTOM_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_BOTTOM_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
-                   SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -438,8 +431,7 @@ static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite
   }
   if (h_tile.empty) {
     if (v_tile.empty) {
-      int x_overlap =
-          (hv_tile.xoffset + BLOCK_SIZE) - (SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x);
+      int x_overlap = (hv_tile.xoffset + BLOCK_SIZE) - (SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x);
       int y_overlap = (SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y) - hv_tile.yoffset;
       if (y_overlap < x_overlap) {
         *displacement_x += TILE_SIZE - hv_tile.xoffset;
@@ -458,11 +450,11 @@ static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite
   *displacement_y -= v_tile.yoffset;
 }
 
-static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y,
-                                        int *displacement_x, int *displacement_y) {
+static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                        int* displacement_y) {
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
-                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), SIMON_COL_TOP_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -480,11 +472,11 @@ static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y,
   *displacement_y += TILE_SIZE - hv_tile.yoffset;
 }
 
-static void move_up_left_probe_up_right(int world_x, int sprite_x, int sprite_y,
-                                        int *displacement_x, int *displacement_y) {
+static void move_up_left_probe_up_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                        int* displacement_y) {
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x),
-                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x), SIMON_COL_TOP_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -502,8 +494,8 @@ static void move_up_left_probe_up_right(int world_x, int sprite_x, int sprite_y,
   *displacement_y += TILE_SIZE - hv_tile.yoffset;
 }
 
-static void move_up_right_probe_down_right(int world_x, int sprite_x, int sprite_y,
-                                           int *displacement_x, int *displacement_y) {
+static void move_up_right_probe_down_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                           int* displacement_y) {
   TLN_TileInfo h_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_BOTTOM_Y(sprite_y), &h_tile);
@@ -524,8 +516,8 @@ static void move_up_right_probe_down_right(int world_x, int sprite_x, int sprite
   *displacement_x -= hv_tile.xoffset;
 }
 
-static void move_y_left_probes_left(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                    const int *displacement_y) {
+static void move_y_left_probes_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                    const int* displacement_y) {
   for (int i = 1; i < 3; i++) {
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
@@ -548,8 +540,8 @@ static void move_y_left_probes_left(int world_x, int sprite_x, int sprite_y, int
   }
 }
 
-static void move_y_right_probes_right(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                      const int *displacement_y) {
+static void move_y_right_probes_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                      const int* displacement_y) {
   for (int i = 1; i < 3; i++) {
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
@@ -572,11 +564,11 @@ static void move_y_right_probes_right(int world_x, int sprite_x, int sprite_y, i
   }
 }
 
-static void move_up_left_probe_down_left(int world_x, int sprite_x, int sprite_y,
-                                         int *displacement_x, int *displacement_y) {
+static void move_up_left_probe_down_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                         int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_BOTTOM_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_BOTTOM_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -594,11 +586,11 @@ static void move_up_left_probe_down_left(int world_x, int sprite_x, int sprite_y
   *displacement_x += TILE_SIZE - hv_tile.xoffset;
 }
 
-static void move_down_right_probe_down_left(int world_x, int sprite_x, int sprite_y,
-                                            int *displacement_x, int *displacement_y) {
+static void move_down_right_probe_down_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                            int* displacement_y) {
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
-                   SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y,
+                   &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -616,11 +608,11 @@ static void move_down_right_probe_down_left(int world_x, int sprite_x, int sprit
   *displacement_y -= hv_tile.yoffset;
 }
 
-static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite_y,
-                                           int *displacement_x, int *displacement_y) {
+static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                           int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_TOP_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -638,8 +630,8 @@ static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite
   *displacement_x -= hv_tile.xoffset;
 }
 
-static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprite_y,
-                                            int *displacement_x, int *displacement_y) {
+static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                            int* displacement_y) {
   TLN_TileInfo v_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x),
                    SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &v_tile);
@@ -660,11 +652,11 @@ static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprit
   *displacement_y -= hv_tile.yoffset;
 }
 
-static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y,
-                                         int *displacement_x, int *displacement_y) {
+static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
+                                         int* displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, SIMON_COL_TOP_Y(sprite_y),
+                   &h_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
                    SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
@@ -685,8 +677,8 @@ static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y
 /* After each diagonal probe, dispatch to the appropriate single-axis probe
  * set when one axis has been zeroed by collision.  Returns true if the
  * caller should stop (one or both axes are done). */
-static bool dispatch_single_axis(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                 int *displacement_y, bool (*probes)[4]) {
+static bool dispatch_single_axis(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y,
+                                 bool (*probes)[4]) {
   if (*displacement_x != 0 && *displacement_y != 0) {
     return false;
   }
@@ -702,8 +694,8 @@ static bool dispatch_single_axis(int world_x, int sprite_x, int sprite_y, int *d
   return true;
 }
 
-static void move_up_right_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                 int *displacement_y, bool (*probes)[4]) {
+static void move_up_right_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y,
+                                 bool (*probes)[4]) {
   move_up_right_probe_up_right(world_x, sprite_x, sprite_y, displacement_x, displacement_y);
   probes[1][0] = true;
   if (dispatch_single_axis(world_x, sprite_x, sprite_y, displacement_x, displacement_y, probes)) {
@@ -727,8 +719,8 @@ static void move_up_right_probes(int world_x, int sprite_x, int sprite_y, int *d
   probes[1][3] = true;
 }
 
-static void move_up_left_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                int *displacement_y, bool (*probes)[4]) {
+static void move_up_left_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y,
+                                bool (*probes)[4]) {
   move_up_left_probe_up_left(world_x, sprite_x, sprite_y, displacement_x, displacement_y);
   probes[0][0] = true;
   if (dispatch_single_axis(world_x, sprite_x, sprite_y, displacement_x, displacement_y, probes)) {
@@ -752,8 +744,8 @@ static void move_up_left_probes(int world_x, int sprite_x, int sprite_y, int *di
   probes[1][3] = true;
 }
 
-static void move_down_right_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                   int *displacement_y, bool (*probes)[4]) {
+static void move_down_right_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y,
+                                   bool (*probes)[4]) {
   move_down_right_probe_down_right(world_x, sprite_x, sprite_y, displacement_x, displacement_y);
   probes[1][3] = true;
   if (dispatch_single_axis(world_x, sprite_x, sprite_y, displacement_x, displacement_y, probes)) {
@@ -777,8 +769,8 @@ static void move_down_right_probes(int world_x, int sprite_x, int sprite_y, int 
   probes[1][0] = true;
 }
 
-static void move_down_left_probes(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                                  int *displacement_y, bool (*probes)[4]) {
+static void move_down_left_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y,
+                                  bool (*probes)[4]) {
   move_down_left_probe_down_left(world_x, sprite_x, sprite_y, displacement_x, displacement_y);
   probes[0][3] = true;
   if (dispatch_single_axis(world_x, sprite_x, sprite_y, displacement_x, displacement_y, probes)) {
@@ -823,8 +815,7 @@ static void move_down_left_probes(int world_x, int sprite_x, int sprite_y, int *
  * \param displacement_x        In/out: candidate horizontal displacement, clamped on return
  * \param displacement_y        In/out: candidate vertical displacement, clamped on return
  */
-void resolve_collision(int world_x, int sprite_x, int sprite_y, int *displacement_x,
-                       int *displacement_y) {
+void resolve_collision(int world_x, int sprite_x, int sprite_y, int* displacement_x, int* displacement_y) {
   bool probes[2][4] = {{false}};
 
   if (*displacement_x < 0) {

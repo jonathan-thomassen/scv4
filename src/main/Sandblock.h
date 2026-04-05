@@ -47,14 +47,14 @@ typedef struct {
 } SandblockState;
 
 /** Pixel dimensions of one sandblock — needed for AABB tests in Simon.c. */
-#define SANDBLOCK_WIDTH 16
+#define SANDBLOCK_WIDTH  16
 #define SANDBLOCK_HEIGHT 16
 
 /**
  * Fills \p out with the state of slot \p index.
  * Returns true if the slot is active, false if empty (\p out is not written).
  */
-bool SandblockGet(int index, SandblockState *out);
+bool SandblockGet(int index, SandblockState* out);
 
 /**
  * Marks slot \p index as stood-on this frame so SandblockTasks() can

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define DB_STEPS 135
+#define DB_STEPS     135
 #define DB_TICK_RATE 9
 
 typedef struct {

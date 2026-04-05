@@ -54,7 +54,7 @@ static void mock_grid_fill(int tx1, int ty1, int tx2, int ty2) {
 }
 
 /* ---- Mock implementation of TLN_GetLayerTile ---- */
-TLNAPI bool TLN_GetLayerTile(int nlayer, int x, int y, TLN_TileInfo *info) {
+TLNAPI bool TLN_GetLayerTile(int nlayer, int x, int y, TLN_TileInfo* info) {
   (void)nlayer;
   memset(info, 0, sizeof(*info));
   if (x < 0 || y < 0) {
@@ -79,9 +79,9 @@ TLNAPI bool TLN_GetLayerTile(int nlayer, int x, int y, TLN_TileInfo *info) {
 /* ========================================================================
  * Mock: FileOpen
  * ======================================================================== */
-static FILE *mock_file_ptr = NULL;
+static FILE* mock_file_ptr = NULL;
 
-FILE *FileOpen(const char *filename) {
+FILE* FileOpen(const char* filename) {
   (void)filename;
   return mock_file_ptr;
 }
@@ -100,36 +100,36 @@ static int tests_failed = 0;
 
 #define TEST(name) static void name(void)
 
-#define RUN_TEST(name)                                                                             \
-  do {                                                                                             \
-    tests_run++;                                                                                   \
-    printf("  %-55s ", #name);                                                                     \
-    fflush(stdout);                                                                                \
-    name();                                                                                        \
-    tests_passed++;                                                                                \
-    printf("PASS\n");                                                                              \
+#define RUN_TEST(name)                                                                                                 \
+  do {                                                                                                                 \
+    tests_run++;                                                                                                       \
+    printf("  %-55s ", #name);                                                                                         \
+    fflush(stdout);                                                                                                    \
+    name();                                                                                                            \
+    tests_passed++;                                                                                                    \
+    printf("PASS\n");                                                                                                  \
   } while (0)
 
 /* ASSERT_EQ jumps out of the current test on failure via return.
  * The RUN_TEST macro skips the tests_passed++ increment, leaving the
  * count off by one — we track failures separately. */
-#define ASSERT_EQ(a, b)                                                                            \
-  do {                                                                                             \
-    int _a = (a), _b = (b);                                                                        \
-    if (_a != _b) {                                                                                \
-      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__, #a, _a, _b);          \
-      tests_failed++;                                                                              \
-      return;                                                                                      \
-    }                                                                                              \
+#define ASSERT_EQ(a, b)                                                                                                \
+  do {                                                                                                                 \
+    int _a = (a), _b = (b);                                                                                            \
+    if (_a != _b) {                                                                                                    \
+      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__, #a, _a, _b);                              \
+      tests_failed++;                                                                                                  \
+      return;                                                                                                          \
+    }                                                                                                                  \
   } while (0)
 
-#define ASSERT_TRUE(cond)                                                                          \
-  do {                                                                                             \
-    if (!(cond)) {                                                                                 \
-      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);                         \
-      tests_failed++;                                                                              \
-      return;                                                                                      \
-    }                                                                                              \
+#define ASSERT_TRUE(cond)                                                                                              \
+  do {                                                                                                                 \
+    if (!(cond)) {                                                                                                     \
+      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);                                             \
+      tests_failed++;                                                                                                  \
+      return;                                                                                                          \
+    }                                                                                                                  \
   } while (0)
 
 /* ========================================================================
@@ -143,14 +143,14 @@ static int tests_failed = 0;
  *   top    probe Y = 65 - 1 = 64       (tile 8, offset 0)
  *   bottom probe Y = 65 + 45 = 110     (tile 13, offset 6)
  * ======================================================================== */
-#define T_WORLD_X 0
-#define T_SPRITE_X 32
-#define T_SPRITE_Y 65
+#define T_WORLD_X   0
+#define T_SPRITE_X  32
+#define T_SPRITE_Y  65
 
 /* Tile indices for the probes (pixel / 8) */
-#define T_LEFT_TX 5    /* 40 / 8 */
-#define T_RIGHT_TX 7   /* first solid column past right probe (55/8 + 1) */
-#define T_TOP_TY 8     /* 64 / 8 */
+#define T_LEFT_TX   5  /* 40 / 8 */
+#define T_RIGHT_TX  7  /* first solid column past right probe (55/8 + 1) */
+#define T_TOP_TY    8  /* 64 / 8 */
 #define T_BOTTOM_TY 13 /* 110 / 8 */
 
 /* ========================================================================
@@ -589,7 +589,7 @@ TEST(test_load_col_definition_null_file) {
 
 TEST(test_load_col_definition_basic) {
   /* Create a temp file with a small col_definition snippet. */
-  FILE *tf = tmpfile();
+  FILE* tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
 
   /* Format: "# HxN" header, then rows.
@@ -622,7 +622,7 @@ TEST(test_load_col_definition_basic) {
 }
 
 TEST(test_load_col_definition_skip_comment_and_marker) {
-  FILE *tf = tmpfile();
+  FILE* tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
 
   fprintf(tf, "// this is a comment\n"
@@ -650,7 +650,7 @@ TEST(test_load_col_definition_skip_comment_and_marker) {
 }
 
 TEST(test_load_col_definition_multiple_sections) {
-  FILE *tf = tmpfile();
+  FILE* tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
 
   /* Two sections: 1x1 and 3x2 */
@@ -821,7 +821,7 @@ static void col_thresh_clear(void) {
  * ======================================================================== */
 
 TEST(test_load_col_out_of_range_section) {
-  FILE *tf = tmpfile();
+  FILE* tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
   /* Section 99x5: H=99 > MAX (8) → data lines skipped */
   fprintf(tf, "# 99x5\n"
@@ -841,7 +841,7 @@ TEST(test_load_col_out_of_range_section) {
 }
 
 TEST(test_load_col_overflow_rows) {
-  FILE *tf = tmpfile();
+  FILE* tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
   /* Section 1x1 with >8 data rows: extra rows hit cur_row >= COL_DEF_ROWS guard
    */

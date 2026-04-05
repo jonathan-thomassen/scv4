@@ -9,21 +9,21 @@
 #include "Tilengine.h"
 #include "Whip.h"
 
-#define HANGTIME 8
-#define TERM_VELOCITY 10
-#define AIR_TURN_DELAY 6
-#define SIMON_HEIGHT 48
-#define SIMON_WIDTH 32          /* total sprite width  (2 × 16 px tiles) */
-#define SIMON_SEG_W 16          /* width of one subsprite tile           */
-#define SIMON_MAX_STAGES 8      /* max animation stages per section      */
-#define SIMON_MAX_SEGS 8        /* max subsprites per stage              */
-#define WALK_FRAMES_PER_STAGE 8 /* game frames each walk frame is shown  */
-#define JUMP_ARC_LEN_SHORT 45
-#define JUMP_ARC_LEN_TALL 46
-#define JUMP_ARC_LEN_HIGHER 48
-#define BRIDGE_FLOOR_Y 32767
-#define CEILING_FALL_TV 8
-#define CEILING_GAP 0 /* empty pixel rows between Simon's head and ceiling tile */
+#define HANGTIME              8
+#define TERM_VELOCITY         10
+#define AIR_TURN_DELAY        6
+#define SIMON_HEIGHT          48
+#define SIMON_WIDTH           32 /* total sprite width  (2 × 16 px tiles) */
+#define SIMON_SEG_W           16 /* width of one subsprite tile           */
+#define SIMON_MAX_STAGES      8  /* max animation stages per section      */
+#define SIMON_MAX_SEGS        8  /* max subsprites per stage              */
+#define WALK_FRAMES_PER_STAGE 8  /* game frames each walk frame is shown  */
+#define JUMP_ARC_LEN_SHORT    45
+#define JUMP_ARC_LEN_TALL     46
+#define JUMP_ARC_LEN_HIGHER   48
+#define BRIDGE_FLOOR_Y        32767
+#define CEILING_FALL_TV       8
+#define CEILING_GAP           0 /* empty pixel rows between Simon's head and ceiling tile */
 
 /* Gradual acceleration after falling from a ceiling hang.
  * Odd velocity steps hold for 3 frames, even steps for 2, until CEILING_FALL_TV.
@@ -43,23 +43,23 @@ static int ceiling_fall_dy_at(int frame) {
 }
 
 /* Short arc (tap) */
-static const int jump_arc_dy_short[JUMP_ARC_LEN_SHORT] = {
-    -1, -5, -4, -5, -3, -4, -3, -2, -3, -1, -2, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0,  0,  1,  1,  2,  1,  3,  2,  3,  4,  3,  5,  4,  5, 5, 6, 6, 7, 7, 8, 7, 8};
+static const int jump_arc_dy_short[JUMP_ARC_LEN_SHORT] = {-1, -5, -4, -5, -3, -4, -3, -2, -3, -1, -2, -1, -1, 0, 0,
+                                                          0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  2,  1, 3,
+                                                          2,  3,  4,  3,  5,  4,  5,  5,  6,  6,  7,  7,  8,  7, 8};
 
 /* Tall arc (hold 2 frames) */
-static const int jump_arc_dy_tall[JUMP_ARC_LEN_TALL] = {
-    -1, -5, -4, -5, -4, -4, -3, -3, -3, -2, -2, -1, -2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0,  0,  0,  1,  2,  1,  2,  2,  3,  3,  4,  4,  5,  4,  5, 5, 6, 6, 7, 7, 8, 7, 8};
+static const int jump_arc_dy_tall[JUMP_ARC_LEN_TALL] = {-1, -5, -4, -5, -4, -4, -3, -3, -3, -2, -2, -1, -2, -1, 0, 0,
+                                                        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  1,  2,  2, 3,
+                                                        3,  4,  4,  5,  4,  5,  5,  6,  6,  7,  7,  8,  7,  8};
 
 /* Higher arc (hold 3+ frames) */
 static const int jump_arc_dy_higher[JUMP_ARC_LEN_HIGHER] = {
-    -1, -5, -4, -5, -4, -5, -3, -4, -3, -2, -3, -1, -2, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0,  0,  0,  1,  1,  2,  1,  3,  2,  3,  4,  3,  5,  4,  5,  5, 6, 6, 6, 7, 7, 8, 7, 8};
+  -1, -5, -4, -5, -4, -5, -3, -4, -3, -2, -3, -1, -2, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0,  0,  0,  1,  1,  2,  1,  3,  2,  3,  4,  3,  5,  4,  5,  5, 6, 6, 6, 7, 7, 8, 7, 8};
 
-#define PROBE_X_START 4
-#define PROBE_X_STEP 16
-#define PROBE_X_LIMIT 44
+#define PROBE_X_START  4
+#define PROBE_X_STEP   16
+#define PROBE_X_LIMIT  44
 #define PROBE_X_OFFSET 23
 
 #define PROBE_Y_OFFSET 36
@@ -73,10 +73,12 @@ typedef enum {
 typedef struct {
   int pic, dx, dy;
 } SimonSeg;
+
 typedef struct {
   SimonSeg segs[SIMON_MAX_SEGS];
   int count;
 } SimonStage;
+
 typedef struct {
   SimonStage stages[SIMON_MAX_STAGES];
   int num_stages;
@@ -84,8 +86,8 @@ typedef struct {
 
 static TLN_Spriteset simon;
 static TLN_Bitmap simon_bmp;
-static SimonSection sec_stand, sec_walk, sec_jump, sec_teeter, sec_crouch, sec_crouch_walk,
-    sec_whip, sec_whip_jump, sec_crouch_whip, sec_whip_up, sec_whip_jump_up;
+static SimonSection sec_stand, sec_walk, sec_jump, sec_teeter, sec_crouch, sec_crouch_walk, sec_whip, sec_whip_jump,
+  sec_crouch_whip, sec_whip_up, sec_whip_jump_up;
 static int walk_anim_frame;
 
 static Coords2d position;
@@ -123,7 +125,9 @@ static int bridge_floor = BRIDGE_FLOOR_Y;
 static int bridge_tolerance = 0;
 
 void SimonSetBridgeFloor(int feet_y) { bridge_floor = feet_y; }
+
 void SimonSetBridgeTolerance(int tol) { bridge_tolerance = tol; }
+
 void SimonClearBridgeFloor(void) {
   bridge_floor = BRIDGE_FLOOR_Y;
   bridge_tolerance = 0;
@@ -133,9 +137,8 @@ void SimonClearBridgeFloor(void) {
  * Internal helpers: spriteset loader, section parser, renderer
  * ------------------------------------------------------------------------- */
 
-static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_name,
-                                         TLN_Bitmap *out_bitmap) {
-  FILE *file = FileOpen(txt_name);
+static TLN_Spriteset load_grid_spriteset(const char* txt_name, const char* png_name, TLN_Bitmap* out_bitmap) {
+  FILE* file = FileOpen(txt_name);
   if (file == NULL) {
     return NULL;
   }
@@ -169,7 +172,7 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
   int rows = TLN_GetBitmapHeight(bmp) / th;
   int total = rows * cols;
 
-  TLN_SpriteData *data = (TLN_SpriteData *)malloc((size_t)total * sizeof(TLN_SpriteData));
+  TLN_SpriteData* data = (TLN_SpriteData*)malloc((size_t)total * sizeof(TLN_SpriteData));
   if (data == NULL) {
     TLN_DeleteBitmap(bmp);
     return NULL;
@@ -177,7 +180,7 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
 
   for (int row = 0; row < rows; row++) {
     for (int column = 0; column < cols; column++) {
-      TLN_SpriteData *spritedata = &data[(row * cols) + column];
+      TLN_SpriteData* spritedata = &data[(row * cols) + column];
       snprintf(spritedata->name, sizeof(spritedata->name), "s%d", (row * cols) + column);
       spritedata->x = column * tw;
       spritedata->y = row * th;
@@ -200,13 +203,13 @@ static TLN_Spriteset load_grid_spriteset(const char *txt_name, const char *png_n
  * headers, then "sP = ( dx, dy)" subsprite lines.  No flip flags are used
  * for Simon — mirroring is applied uniformly when facing left.
  */
-static void load_simon_section(const char *filename, const char *section, SimonSection *out) {
+static void load_simon_section(const char* filename, const char* section, SimonSection* out) {
   out->num_stages = 0;
   for (int stage = 0; stage < SIMON_MAX_STAGES; stage++) {
     out->stages[stage].count = 0;
   }
 
-  FILE *file = FileOpen(filename);
+  FILE* file = FileOpen(filename);
   if (file == NULL) {
     return;
   }
@@ -246,7 +249,7 @@ static void load_simon_section(const char *filename, const char *section, SimonS
       continue;
     }
 
-    SimonSeg *seg = &out->stages[cur_stage].segs[out->stages[cur_stage].count++];
+    SimonSeg* seg = &out->stages[cur_stage].segs[out->stages[cur_stage].count++];
     seg->pic = pic;
     seg->dx = dx;
     seg->dy = dy;
@@ -255,7 +258,7 @@ static void load_simon_section(const char *filename, const char *section, SimonS
 }
 
 /* Renders one stage of a section using the current position and direction. */
-static void render_section_stage(const SimonSection *sec, int stage_idx) {
+static void render_section_stage(const SimonSection* sec, int stage_idx) {
   if (sec->num_stages == 0) {
     for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
       TLN_DisableSprite(SIMON_SPRITE_BASE + i);
@@ -265,13 +268,12 @@ static void render_section_stage(const SimonSection *sec, int stage_idx) {
   if (stage_idx >= sec->num_stages) {
     stage_idx = sec->num_stages - 1;
   }
-  const SimonStage *stage = &sec->stages[stage_idx];
+  const SimonStage* stage = &sec->stages[stage_idx];
   bool facing_right = (direction == DIR_RIGHT);
   for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
     if (i < stage->count) {
-      const SimonSeg *seg = &stage->segs[i];
-      int worldx =
-          position.x + ((int)facing_right ? seg->dx : (SIMON_WIDTH - seg->dx - SIMON_SEG_W));
+      const SimonSeg* seg = &stage->segs[i];
+      int worldx = position.x + ((int)facing_right ? seg->dx : (SIMON_WIDTH - seg->dx - SIMON_SEG_W));
       TLN_SetSpriteSet(SIMON_SPRITE_BASE + i, simon);
       TLN_SetSpritePicture(SIMON_SPRITE_BASE + i, seg->pic);
       TLN_EnableSpriteFlag(SIMON_SPRITE_BASE + i, FLAG_FLIPX, (bool)!facing_right);
@@ -289,13 +291,12 @@ static void render_section_stage(const SimonSection *sec, int stage_idx) {
  * and from any function that moves Simon outside the normal update loop.
  */
 static void render_current_state(void) {
-  const SimonSection *sec;
+  const SimonSection* sec;
   int stage = 0;
   if (WhipIsActive()) {
     if (state == SIMON_JUMPING) {
       sec = (int)WhipIsUp() ? &sec_whip_jump_up : &sec_whip_jump;
-    } else if (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING ||
-               state == SIMON_CROUCH_WHIPPING) {
+    } else if (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) {
       sec = &sec_crouch_whip;
     } else if (WhipIsUp()) {
       sec = &sec_whip_up;
@@ -308,31 +309,23 @@ static void render_current_state(void) {
     }
   } else {
     switch (state) {
-    case SIMON_WALKING:
-      sec = &sec_walk;
-      if (sec->num_stages > 0) {
-        stage = (walk_anim_frame / WALK_FRAMES_PER_STAGE) % sec->num_stages;
-      }
-      break;
-    case SIMON_JUMPING:
-      sec = &sec_jump;
-      break;
-    case SIMON_TEETER:
-      sec = &sec_teeter;
-      break;
-    case SIMON_CROUCHING:
-    case SIMON_CROUCH_WHIPPING:
-      sec = &sec_crouch;
-      break;
-    case SIMON_CROUCH_WALKING:
-      sec = &sec_crouch_walk;
-      if (sec_crouch_walk.num_stages > 0) {
-        stage = (walk_anim_frame / WALK_FRAMES_PER_STAGE) % sec_crouch_walk.num_stages;
-      }
-      break;
-    default:
-      sec = &sec_stand;
-      break;
+      case SIMON_WALKING:
+        sec = &sec_walk;
+        if (sec->num_stages > 0) {
+          stage = (walk_anim_frame / WALK_FRAMES_PER_STAGE) % sec->num_stages;
+        }
+        break;
+      case SIMON_JUMPING: sec = &sec_jump; break;
+      case SIMON_TEETER: sec = &sec_teeter; break;
+      case SIMON_CROUCHING:
+      case SIMON_CROUCH_WHIPPING: sec = &sec_crouch; break;
+      case SIMON_CROUCH_WALKING:
+        sec = &sec_crouch_walk;
+        if (sec_crouch_walk.num_stages > 0) {
+          stage = (walk_anim_frame / WALK_FRAMES_PER_STAGE) % sec_crouch_walk.num_stages;
+        }
+        break;
+      default: sec = &sec_stand; break;
     }
   }
   render_section_stage(sec, stage);
@@ -407,8 +400,7 @@ void SimonSetState(SimonState new_state) {
 }
 
 static void update_facing(Direction input) {
-  if ((input == DIR_RIGHT && direction == DIR_LEFT) ||
-      (input == DIR_LEFT && direction == DIR_RIGHT)) {
+  if ((input == DIR_RIGHT && direction == DIR_LEFT) || (input == DIR_LEFT && direction == DIR_RIGHT)) {
     direction = input;
   }
 }
@@ -462,43 +454,43 @@ static int apply_movement(Direction input) {
 
   int dx = 0;
   switch (state) {
-  case SIMON_TEETER:
-  case SIMON_IDLE:
-    if (input) {
-      SimonSetState(SIMON_WALKING);
-    }
-    break;
-  case SIMON_WALKING:
-  case SIMON_JUMPING:
-    if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
-      dx = execute_move(input, changing_dir);
-    } else {
-      move_frame = 0;
-    }
-    if (state == SIMON_WALKING && !input) {
-      SimonSetState(SIMON_IDLE);
-    }
-    break;
-  case SIMON_CROUCHING:
-    /* Directional input while crouching starts a crouch-walk. */
-    if (input) {
-      SimonSetState(SIMON_CROUCH_WALKING);
-      dx = execute_move(input, changing_dir);
-    }
-    break;
-  case SIMON_CROUCH_WALKING:
-    if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
-      dx = execute_move(input, changing_dir);
-    } else {
-      move_frame = 0;
-    }
-    if (!input) {
-      SimonSetState(SIMON_CROUCHING);
-    }
-    break;
-  case SIMON_CROUCH_WHIPPING:
-    /* No movement during a crouched whip swing. */
-    break;
+    case SIMON_TEETER:
+    case SIMON_IDLE:
+      if (input) {
+        SimonSetState(SIMON_WALKING);
+      }
+      break;
+    case SIMON_WALKING:
+    case SIMON_JUMPING:
+      if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
+        dx = execute_move(input, changing_dir);
+      } else {
+        move_frame = 0;
+      }
+      if (state == SIMON_WALKING && !input) {
+        SimonSetState(SIMON_IDLE);
+      }
+      break;
+    case SIMON_CROUCHING:
+      /* Directional input while crouching starts a crouch-walk. */
+      if (input) {
+        SimonSetState(SIMON_CROUCH_WALKING);
+        dx = execute_move(input, changing_dir);
+      }
+      break;
+    case SIMON_CROUCH_WALKING:
+      if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
+        dx = execute_move(input, changing_dir);
+      } else {
+        move_frame = 0;
+      }
+      if (!input) {
+        SimonSetState(SIMON_CROUCHING);
+      }
+      break;
+    case SIMON_CROUCH_WHIPPING:
+      /* No movement during a crouched whip swing. */
+      break;
   }
   return dx;
 }
@@ -522,7 +514,7 @@ static void apply_collisions(int start_y_velocity, int dx, int width) {
       dy = ceiling_fall_dy_at(ceiling_fall_frame++);
       y_velocity = dy;
     } else {
-      const int *arc = (int)jump_arc_higher ? jump_arc_dy_higher
+      const int* arc = (int)jump_arc_higher ? jump_arc_dy_higher
                        : (int)jump_arc_tall ? jump_arc_dy_tall
                                             : jump_arc_dy_short;
       if (jump_frame < arc_len) {
@@ -584,8 +576,8 @@ void SimonTasks(void) {
    * On the ground, suppress all input so Simon stays planted.
    * While crouching (stationary), allow left/right for crouch-walk but not jump. */
   bool whip_airborne = ((int)WhipIsActive() && (state == SIMON_JUMPING)) != 0;
-  bool is_crouching = (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING ||
-                       state == SIMON_CROUCH_WHIPPING) != 0;
+  bool is_crouching =
+    (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
   if (!WhipIsActive() || (int)whip_airborne) {
     if (TLN_GetInput(INPUT_LEFT)) {
       input = DIR_LEFT;
@@ -641,8 +633,7 @@ void SimonTasks(void) {
   if ((int)crouch_held && (int)on_ground && !WhipIsActive()) {
     if (state == SIMON_WALKING) {
       SimonSetState(SIMON_CROUCH_WALKING);
-    } else if (state != SIMON_CROUCHING && state != SIMON_CROUCH_WALKING &&
-               state != SIMON_CROUCH_WHIPPING) {
+    } else if (state != SIMON_CROUCHING && state != SIMON_CROUCH_WALKING && state != SIMON_CROUCH_WHIPPING) {
       SimonSetState(SIMON_CROUCHING);
     }
   } else if (state == SIMON_CROUCH_WHIPPING) {
@@ -650,14 +641,12 @@ void SimonTasks(void) {
     if (!WhipIsActive()) {
       SimonSetState((int)crouch_held ? SIMON_CROUCHING : SIMON_IDLE);
     }
-  } else if ((state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING) &&
-             (!crouch_held || !on_ground)) {
+  } else if ((state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING) && (!crouch_held || !on_ground)) {
     SimonSetState(state == SIMON_CROUCH_WALKING ? SIMON_WALKING : SIMON_IDLE);
   }
 
   /* Transition crouching states to CROUCH_WHIPPING when whip fires. */
-  if ((int)WhipIsActive() && (int)on_ground &&
-      (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING)) {
+  if ((int)WhipIsActive() && (int)on_ground && (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING)) {
     SimonSetState(SIMON_CROUCH_WHIPPING);
   }
 
@@ -726,8 +715,7 @@ void SimonSetWorldX(int new_world_x) { position.scroll_x = new_world_x; }
 int SimonGetScreenY(void) { return position.y; }
 
 bool SimonIsCrouching(void) {
-  return (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING ||
-          state == SIMON_CROUCH_WHIPPING) != 0;
+  return (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
 }
 
 bool SimonFacingRight(void) { return direction == DIR_RIGHT; }

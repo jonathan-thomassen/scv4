@@ -8,7 +8,7 @@
 
 /* Torch slots follow sandblocks: 1..MAX_SANDBLOCKS are sandblocks,
  * 1+MAX_SANDBLOCKS..1+MAX_SANDBLOCKS+MAX_TORCHES-1 are torches. */
-#define SPRITE_BASE (1 + MAX_SANDBLOCKS)
+#define SPRITE_BASE           (1 + MAX_SANDBLOCKS)
 
 /* Torches scrolled more than this many pixels past the left screen edge are
  * permanently deactivated; chosen to exceed the widest possible torch sprite. */
