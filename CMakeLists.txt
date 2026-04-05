@@ -16,18 +16,23 @@ find_package(Tilengine REQUIRED)
 if(UNIX AND NOT APPLE)
   set(CMAKE_C_FLAGS "-m64 -msse2")
 elseif(UNIX AND APPLE)
-  link_libraries("framework")
+  # nothing – per-target linking below
 endif()
 
-if(UNIX)
-  link_libraries("c")
-  link_libraries("m")
-endif()
-
-link_libraries("z")
-link_libraries("png")
 find_package(SDL3 REQUIRED CONFIG)
-link_libraries(SDL3::SDL3)
+
+# Collect Tilengine's transitive dependencies so they appear AFTER the static
+# library on the link line (required for static archive symbol resolution).
+set(TILENGINE_TRANSITIVE_DEPS "z" "png" SDL3::SDL3)
+if(WIN32)
+  list(APPEND TILENGINE_TRANSITIVE_DEPS "winmm")
+endif()
+if(UNIX AND APPLE)
+  list(APPEND TILENGINE_TRANSITIVE_DEPS "framework")
+endif()
+if(UNIX)
+  list(APPEND TILENGINE_TRANSITIVE_DEPS "c" "m")
+endif()
 
 # Compiler-specific flags
 set(CMAKE_C_STANDARD 23)
@@ -65,23 +70,24 @@ add_custom_target(
 
 add_executable(
   intro
-  Intro.c
-  Profiling.c
-  Simon.c
-  SimonCollision.c
-  Sandblock.c
-  Torch.c
-  Prop.c
-  Hud.c
-  Drawbridge.c
-  Whip.c)
+  src/main/Intro.c
+  src/main/Profiling.c
+  src/main/Simon.c
+  src/main/SimonCollision.c
+  src/main/Sandblock.c
+  src/main/Torch.c
+  src/main/Prop.c
+  src/main/Hud.c
+  src/main/Drawbridge.c
+  src/main/Whip.c)
 
-target_include_directories(intro PRIVATE ${TILENGINE_INCLUDE_DIRS})
-target_link_libraries(intro PRIVATE ${TILENGINE_LIBRARIES})
+target_include_directories(intro PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main
+                                         ${TILENGINE_INCLUDE_DIRS})
+target_link_libraries(intro PRIVATE ${TILENGINE_LIBRARIES} ${TILENGINE_TRANSITIVE_DEPS})
 
 # Unit test for SimonCollision (self-contained, no Tilengine/SDL link needed)
-add_executable(test_collision test_collision.c)
-target_include_directories(test_collision PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+add_executable(test_collision src/test/test_collision.c)
+target_include_directories(test_collision PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/main
                                                   ${TILENGINE_INCLUDE_DIRS})
 target_compile_definitions(test_collision PRIVATE LIB_EXPORTS)
 # Unlink the default libraries — the test provides its own mocks.
@@ -100,7 +106,7 @@ if(COVERAGE AND NOT MSVC)
       coverage
       COMMAND test_collision
       COMMAND ${GCOVR} --root ${CMAKE_CURRENT_SOURCE_DIR}
-              --filter ${CMAKE_CURRENT_SOURCE_DIR}/SimonCollision.c
+              --filter ${CMAKE_CURRENT_SOURCE_DIR}/src/main/SimonCollision.c
               --print-summary
               --html-details ${CMAKE_CURRENT_BINARY_DIR}/coverage.html
               --txt ${CMAKE_CURRENT_BINARY_DIR}/coverage.txt
