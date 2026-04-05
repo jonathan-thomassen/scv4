@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0.2)
+cmake_minimum_required(VERSION 3.21)
 
 project(scv4 LANGUAGES C)
 
