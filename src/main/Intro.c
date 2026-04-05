@@ -1,4 +1,5 @@
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_timer.h>
 #include <stdio.h>
 #include <string.h>
@@ -225,7 +226,8 @@ int main(int argc, const char* argv[]) {
   TLN_SetLayerBlendMode(MAIN_LAYER, BLEND_MIX50);
 
   /* main loop */
-  TLN_CreateWindow(CWF_NEAREST | CWF_S4 | CWF_NOVSYNC);
+  SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "0");
+  TLN_CreateWindow(CWF_NEAREST | CWF_S6 | CWF_NOVSYNC);
   TLN_DefineInputKey(PLAYER1, INPUT_UP, SDLK_W);
   TLN_DefineInputKey(PLAYER1, INPUT_LEFT, SDLK_A);
   TLN_DefineInputKey(PLAYER1, INPUT_RIGHT, SDLK_D);

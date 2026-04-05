@@ -248,7 +248,7 @@ static void move_down_probes(int world_x, int sprite_x, int sprite_y, int* displ
                      SIMON_COL_BOTTOM_Y(sprite_y) + *displacement_y, &v_tile);
 
     if (!v_tile.empty) {
-      *displacement_y -= v_tile.yoffset;
+      *displacement_y -= v_tile.yoffset + 1;
       return;
     }
   }
@@ -370,14 +370,14 @@ static void move_down_right_probe_down_right(int world_x, int sprite_x, int spri
       if (v_tile.empty) {
         return;
       }
-      *displacement_y -= v_tile.yoffset;
+      *displacement_y -= v_tile.yoffset + 1;
       return;
     }
     *displacement_x -= h_tile.xoffset;
     if (v_tile.empty) {
       return;
     }
-    *displacement_y -= v_tile.yoffset;
+    *displacement_y -= v_tile.yoffset + 1;
     return;
   }
   if (h_tile.empty) {
@@ -388,10 +388,10 @@ static void move_down_right_probe_down_right(int world_x, int sprite_x, int spri
         *displacement_x -= hv_tile.xoffset;
         return;
       }
-      *displacement_y -= hv_tile.yoffset;
+      *displacement_y -= hv_tile.yoffset + 1;
       return;
     }
-    *displacement_y -= v_tile.yoffset;
+    *displacement_y -= v_tile.yoffset + 1;
     return;
   }
   if (v_tile.empty) {
@@ -399,7 +399,7 @@ static void move_down_right_probe_down_right(int world_x, int sprite_x, int spri
     return;
   }
   *displacement_x -= h_tile.xoffset;
-  *displacement_y -= v_tile.yoffset;
+  *displacement_y -= v_tile.yoffset + 1;
 }
 
 static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
@@ -419,14 +419,14 @@ static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite
       if (v_tile.empty) {
         return;
       }
-      *displacement_y -= v_tile.yoffset;
+      *displacement_y -= v_tile.yoffset + 1;
       return;
     }
     *displacement_x += TILE_SIZE - h_tile.xoffset;
     if (v_tile.empty) {
       return;
     }
-    *displacement_y -= v_tile.yoffset;
+    *displacement_y -= v_tile.yoffset + 1;
     return;
   }
   if (h_tile.empty) {
@@ -437,17 +437,17 @@ static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite
         *displacement_x += TILE_SIZE - hv_tile.xoffset;
         return;
       }
-      *displacement_y -= hv_tile.yoffset;
+      *displacement_y -= hv_tile.yoffset + 1;
       return;
     }
-    *displacement_y -= v_tile.yoffset;
+    *displacement_y -= v_tile.yoffset + 1;
     return;
   }
   *displacement_x += TILE_SIZE - h_tile.xoffset;
   if (v_tile.empty) {
     return;
   }
-  *displacement_y -= v_tile.yoffset;
+  *displacement_y -= v_tile.yoffset + 1;
 }
 
 static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,
@@ -605,7 +605,7 @@ static void move_down_right_probe_down_left(int world_x, int sprite_x, int sprit
     col_definition_lookup(h, n, 0, false, true, displacement_x, displacement_y);
     return;
   }
-  *displacement_y -= hv_tile.yoffset;
+  *displacement_y -= hv_tile.yoffset + 1;
 }
 
 static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite_y, int* displacement_x,
@@ -649,7 +649,7 @@ static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprit
     col_definition_lookup(h, n, 0, true, true, displacement_x, displacement_y);
     return;
   }
-  *displacement_y -= hv_tile.yoffset;
+  *displacement_y -= hv_tile.yoffset + 1;
 }
 
 static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y, int* displacement_x,

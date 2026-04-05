@@ -234,7 +234,7 @@ static void load_map_file(const char* filename, const char* section, WhipStage* 
   fclose(file);
 }
 
-void WhipInit(void) {
+void whip_init(void) {
   spriteset = load_grid_spriteset("whip0.txt", "whip0.png", &spriteset_bmp);
   swing_frame = WHIP_DURATION; /* inactive */
   swing_up = false;
@@ -246,7 +246,7 @@ void WhipInit(void) {
   load_map_file("whip0_map.txt", "up", up_stages);
 }
 
-void WhipDeinit(void) {
+void whip_deinit(void) {
   disable_all_segments();
   if (spriteset != NULL) {
     TLN_DeleteSpriteset(spriteset);
@@ -261,21 +261,21 @@ void WhipDeinit(void) {
   }
 }
 
-bool WhipIsActive(void) { return swing_frame < WHIP_DURATION; }
+bool whip_is_active(void) { return swing_frame < WHIP_DURATION; }
 
-int WhipGetStage(void) {
-  if (!WhipIsActive()) {
+int whip_get_stage(void) {
+  if (!whip_is_active()) {
     return 0;
   }
   return last_rendered_stage;
 }
 
-void WhipTasks(void) {
+void whip_tasks(void) {
   bool pressed = (int)TLN_GetInput(INPUT_B) != 0;
 
   /* Rising-edge trigger: start a new swing only on a fresh press and while
    * no swing is already running. */
-  if ((int)pressed && !prev_pressed && !WhipIsActive()) {
+  if ((int)pressed && !prev_pressed && !whip_is_active()) {
     swing_frame = 0;
     swing_facing_right = simon_facing_right();
     swing_up = (int)TLN_GetInput(INPUT_UP) != 0;
@@ -284,7 +284,7 @@ void WhipTasks(void) {
 
   render_pending = false;
 
-  if (!WhipIsActive()) {
+  if (!whip_is_active()) {
     return;
   }
 
@@ -305,9 +305,9 @@ void WhipTasks(void) {
   }
 }
 
-bool WhipIsUp(void) { return (int)(WhipIsActive() && (int)swing_up) != 0; }
+bool whip_is_up(void) { return (int)((int)whip_is_active() && (int)swing_up) != 0; }
 
-void WhipRender(void) {
+void whip_render(void) {
   if (!render_pending) {
     return;
   }

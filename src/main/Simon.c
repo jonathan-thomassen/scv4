@@ -124,11 +124,11 @@ static int bridge_floor = BRIDGE_FLOOR_Y;
  * At 0 Simon sits exactly on top; at 8 he can stand 8 px into the bridge. */
 static int bridge_tolerance = 0;
 
-void SimonSetBridgeFloor(int feet_y) { bridge_floor = feet_y; }
+void simon_set_bridge_floor(int feet_y) { bridge_floor = feet_y; }
 
-void SimonSetBridgeTolerance(int tol) { bridge_tolerance = tol; }
+void simon_set_bridge_tolerance(int tol) { bridge_tolerance = tol; }
 
-void SimonClearBridgeFloor(void) {
+void simon_clear_bridge_floor(void) {
   bridge_floor = BRIDGE_FLOOR_Y;
   bridge_tolerance = 0;
 }
@@ -293,17 +293,17 @@ static void render_section_stage(const SimonSection* sec, int stage_idx) {
 static void render_current_state(void) {
   const SimonSection* sec;
   int stage = 0;
-  if (WhipIsActive()) {
+  if (whip_is_active()) {
     if (state == SIMON_JUMPING) {
-      sec = (int)WhipIsUp() ? &sec_whip_jump_up : &sec_whip_jump;
+      sec = (int)whip_is_up() ? &sec_whip_jump_up : &sec_whip_jump;
     } else if (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) {
       sec = &sec_crouch_whip;
-    } else if (WhipIsUp()) {
+    } else if (whip_is_up()) {
       sec = &sec_whip_up;
     } else {
       sec = &sec_whip;
     }
-    stage = WhipGetStage();
+    stage = whip_get_stage();
     if (stage >= sec->num_stages) {
       stage = sec->num_stages - 1;
     }
@@ -335,7 +335,7 @@ static void render_current_state(void) {
  * Public API
  * ------------------------------------------------------------------------- */
 
-void SimonInit(void) {
+void simon_init(void) {
   load_col_definition();
   simon = load_grid_spriteset("simon.txt", "simon.png", &simon_bmp);
   load_simon_section("simon_map.txt", "stand", &sec_stand);
@@ -358,7 +358,7 @@ void SimonInit(void) {
   render_current_state();
 }
 
-void SimonDeinit(void) {
+void simon_deinit(void) {
   if (simon != NULL) {
     TLN_DeleteSpriteset(simon);
     simon = NULL;
@@ -369,7 +369,7 @@ void SimonDeinit(void) {
   }
 }
 
-void SimonBringToFront(void) {
+void simon_bring_to_front(void) {
   /* Disabling then re-rendering all segments moves them to the tail of the
    * engine's render list, ensuring Simon draws on top of all other sprites. */
   for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
@@ -378,9 +378,9 @@ void SimonBringToFront(void) {
   render_current_state();
 }
 
-void SimonFreezeCamera(void) { camera_frozen = true; }
+void simon_freeze_camera(void) { camera_frozen = true; }
 
-void SimonSetState(SimonState new_state) {
+void simon_set_state(SimonState new_state) {
   if (state == new_state) {
     return;
   }
@@ -457,7 +457,7 @@ static int apply_movement(Direction input) {
     case SIMON_TEETER:
     case SIMON_IDLE:
       if (input) {
-        SimonSetState(SIMON_WALKING);
+        simon_set_state(SIMON_WALKING);
       }
       break;
     case SIMON_WALKING:
@@ -468,13 +468,13 @@ static int apply_movement(Direction input) {
         move_frame = 0;
       }
       if (state == SIMON_WALKING && !input) {
-        SimonSetState(SIMON_IDLE);
+        simon_set_state(SIMON_IDLE);
       }
       break;
     case SIMON_CROUCHING:
       /* Directional input while crouching starts a crouch-walk. */
       if (input) {
-        SimonSetState(SIMON_CROUCH_WALKING);
+        simon_set_state(SIMON_CROUCH_WALKING);
         dx = execute_move(input, changing_dir);
       }
       break;
@@ -485,7 +485,7 @@ static int apply_movement(Direction input) {
         move_frame = 0;
       }
       if (!input) {
-        SimonSetState(SIMON_CROUCHING);
+        simon_set_state(SIMON_CROUCHING);
       }
       break;
     case SIMON_CROUCH_WHIPPING:
@@ -535,10 +535,8 @@ static void apply_collisions(int start_y_velocity, int dx, int width) {
 
   resolve_collision(position.scroll_x, position.x, position.y, &dx, &dy);
   /* Floor collision while falling: collision clamped dy, so zero velocity
-   * to trigger landing detection below.  Subtract one extra pixel so Simon's
-   * bottom sits just above the floor tile rather than on its top row. */
+   * to trigger landing detection below. */
   if (y_velocity > 0 && dy < y_velocity) {
-    dy -= 1;
     y_velocity = 0;
   }
   if (dx > 0) {
@@ -556,17 +554,17 @@ static void apply_collisions(int start_y_velocity, int dx, int width) {
   }
   position.y += dy;
   if (start_y_velocity > 0 && y_velocity == 0) {
-    SimonSetState(SIMON_IDLE);
+    simon_set_state(SIMON_IDLE);
   }
   if (position.y > TLN_GetHeight()) {
     position.y = 0;
     y_velocity = 0;
-    SimonSetState(SIMON_IDLE);
+    simon_set_state(SIMON_IDLE);
   }
 }
 
-void SimonTasks(void) {
-  sb_count = SandblockSnapshot(sb_cache);
+void simon_tasks(void) {
+  sb_count = sandblock_snapshot(sb_cache);
 
   Direction input = DIR_NONE;
   bool jump = false;
@@ -575,16 +573,16 @@ void SimonTasks(void) {
   /* While whipping in the air, allow directional movement but suppress jump.
    * On the ground, suppress all input so Simon stays planted.
    * While crouching (stationary), allow left/right for crouch-walk but not jump. */
-  bool whip_airborne = ((int)WhipIsActive() && (state == SIMON_JUMPING)) != 0;
+  bool whip_airborne = ((int)whip_is_active() && (state == SIMON_JUMPING)) != 0;
   bool is_crouching =
     (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
-  if (!WhipIsActive() || (int)whip_airborne) {
+  if (!whip_is_active() || (int)whip_airborne) {
     if (TLN_GetInput(INPUT_LEFT)) {
       input = DIR_LEFT;
     } else if (TLN_GetInput(INPUT_RIGHT)) {
       input = DIR_RIGHT;
     }
-    if (!WhipIsActive() && !is_crouching && (int)TLN_GetInput(INPUT_A)) {
+    if (!whip_is_active() && !is_crouching && (int)TLN_GetInput(INPUT_A)) {
       jump = true;
     }
   }
@@ -598,7 +596,7 @@ void SimonTasks(void) {
   int desired_dx = apply_movement(input);
 
   if ((int)jump && (int)jump_was_released && state != SIMON_JUMPING) {
-    SimonSetState(SIMON_JUMPING);
+    simon_set_state(SIMON_JUMPING);
   }
 
   /* Arc-type commitment: deferred until the earliest frame the button *could*
@@ -625,36 +623,36 @@ void SimonTasks(void) {
    * promote immediately to WALKING so the idle sprite never shows for one
    * frame. */
   if (state == SIMON_IDLE && input != DIR_NONE) {
-    SimonSetState(SIMON_WALKING);
+    simon_set_state(SIMON_WALKING);
   }
 
   /* Crouch: down held while on the ground (not jumping, not whipping). */
   bool on_ground = (state != SIMON_JUMPING);
-  if ((int)crouch_held && (int)on_ground && !WhipIsActive()) {
+  if ((int)crouch_held && (int)on_ground && !whip_is_active()) {
     if (state == SIMON_WALKING) {
-      SimonSetState(SIMON_CROUCH_WALKING);
+      simon_set_state(SIMON_CROUCH_WALKING);
     } else if (state != SIMON_CROUCHING && state != SIMON_CROUCH_WALKING && state != SIMON_CROUCH_WHIPPING) {
-      SimonSetState(SIMON_CROUCHING);
+      simon_set_state(SIMON_CROUCHING);
     }
   } else if (state == SIMON_CROUCH_WHIPPING) {
     /* S released while crouch-whipping: hold crouch until whip finishes. */
-    if (!WhipIsActive()) {
-      SimonSetState((int)crouch_held ? SIMON_CROUCHING : SIMON_IDLE);
+    if (!whip_is_active()) {
+      simon_set_state((int)crouch_held ? SIMON_CROUCHING : SIMON_IDLE);
     }
   } else if ((state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING) && (!crouch_held || !on_ground)) {
-    SimonSetState(state == SIMON_CROUCH_WALKING ? SIMON_WALKING : SIMON_IDLE);
+    simon_set_state(state == SIMON_CROUCH_WALKING ? SIMON_WALKING : SIMON_IDLE);
   }
 
   /* Transition crouching states to CROUCH_WHIPPING when whip fires. */
-  if ((int)WhipIsActive() && (int)on_ground && (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING)) {
-    SimonSetState(SIMON_CROUCH_WHIPPING);
+  if ((int)whip_is_active() && (int)on_ground && (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING)) {
+    simon_set_state(SIMON_CROUCH_WHIPPING);
   }
 
   /* Teeter: idle on the bridge surface with no player input. */
   if (state == SIMON_IDLE && bridge_floor != BRIDGE_FLOOR_Y && input == DIR_NONE) {
-    SimonSetState(SIMON_TEETER);
+    simon_set_state(SIMON_TEETER);
   } else if (state == SIMON_TEETER && bridge_floor == BRIDGE_FLOOR_Y) {
-    SimonSetState(SIMON_IDLE);
+    simon_set_state(SIMON_IDLE);
   }
 
   if (state == SIMON_WALKING || state == SIMON_CROUCH_WALKING) {
@@ -663,16 +661,16 @@ void SimonTasks(void) {
   render_current_state();
 }
 
-int SimonGetPosition(void) { return position.scroll_x; }
+int simon_get_position(void) { return position.scroll_x; }
 
-void SimonSetPosition(Coords2d pos) {
+void simon_set_position(Coords2d pos) {
   position.x = pos.x;
   position.y = pos.y;
   position.scroll_x = 0;
   render_current_state();
 }
 
-void SimonPushRight(int pixels) {
+void simon_push_right(int pixels) {
   position.x += pixels;
   /* clamp to one sprite-width past the right screen edge */
   if (position.x > TLN_GetWidth()) {
@@ -681,24 +679,14 @@ void SimonPushRight(int pixels) {
   render_current_state();
 }
 
-int SimonGetScreenX(void) { return position.x; }
+int simon_get_screen_x(void) { return position.x; }
 
-void SimonSetScreenX(int screen_x) {
+void simon_set_screen_x(int screen_x) {
   position.x = screen_x;
   render_current_state();
 }
 
-void SimonSetFeetY(int feet_y) {
-  SimonPinFeetY(feet_y);
-
-  /* Pinning feet to a surface counts as landing: cancel any in-progress jump
-   * so the jump sprite clears and the player can jump again next frame. */
-  if (state == SIMON_JUMPING) {
-    SimonSetState(SIMON_IDLE);
-  }
-}
-
-void SimonPinFeetY(int feet_y) {
+void simon_pin_feet_y(int feet_y) {
   /* Position-only correction: does not change state.
    * Zeroes y_velocity and resets apex_hang so advance_gravity cannot accumulate
    * velocity on surfaces without collision tiles (e.g. the drawbridge deck). */
@@ -708,14 +696,24 @@ void SimonPinFeetY(int feet_y) {
   render_current_state();
 }
 
-int SimonGetFeetY(void) { return position.y + SIMON_HEIGHT; }
+void simon_set_feet_y(int feet_y) {
+  simon_pin_feet_y(feet_y);
 
-void SimonSetWorldX(int new_world_x) { position.scroll_x = new_world_x; }
+  /* Pinning feet to a surface counts as landing: cancel any in-progress jump
+   * so the jump sprite clears and the player can jump again next frame. */
+  if (state == SIMON_JUMPING) {
+    simon_set_state(SIMON_IDLE);
+  }
+}
 
-int SimonGetScreenY(void) { return position.y; }
+int simon_get_feet_y(void) { return position.y + SIMON_HEIGHT; }
 
-bool SimonIsCrouching(void) {
+void simon_set_world_x(int new_world_x) { position.scroll_x = new_world_x; }
+
+int simon_get_screen_y(void) { return position.y; }
+
+bool simon_is_crouching(void) {
   return (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
 }
 
-bool SimonFacingRight(void) { return direction == DIR_RIGHT; }
+bool simon_facing_right(void) { return direction == DIR_RIGHT; }
