@@ -39,8 +39,7 @@ static bool mock_grid[MOCK_GRID_H][MOCK_GRID_W];
 static void mock_grid_clear(void) { memset(mock_grid, 0, sizeof(mock_grid)); }
 
 static void mock_grid_set(int tile_x, int tile_y, bool solid) {
-  if (tile_x >= 0 && tile_x < MOCK_GRID_W && tile_y >= 0 &&
-      tile_y < MOCK_GRID_H)
+  if (tile_x >= 0 && tile_x < MOCK_GRID_W && tile_y >= 0 && tile_y < MOCK_GRID_H)
     mock_grid[tile_y][tile_x] = solid;
 }
 
@@ -98,37 +97,36 @@ static int tests_failed = 0;
 
 #define TEST(name) static void name(void)
 
-#define RUN_TEST(name)                                                         \
-  do {                                                                         \
-    tests_run++;                                                               \
-    printf("  %-55s ", #name);                                                 \
-    fflush(stdout);                                                            \
-    name();                                                                    \
-    tests_passed++;                                                            \
-    printf("PASS\n");                                                          \
+#define RUN_TEST(name)                                                                             \
+  do {                                                                                             \
+    tests_run++;                                                                                   \
+    printf("  %-55s ", #name);                                                                     \
+    fflush(stdout);                                                                                \
+    name();                                                                                        \
+    tests_passed++;                                                                                \
+    printf("PASS\n");                                                                              \
   } while (0)
 
 /* ASSERT_EQ jumps out of the current test on failure via return.
  * The RUN_TEST macro skips the tests_passed++ increment, leaving the
  * count off by one — we track failures separately. */
-#define ASSERT_EQ(a, b)                                                        \
-  do {                                                                         \
-    int _a = (a), _b = (b);                                                    \
-    if (_a != _b) {                                                            \
-      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__,   \
-             #a, _a, _b);                                                      \
-      tests_failed++;                                                          \
-      return;                                                                  \
-    }                                                                          \
+#define ASSERT_EQ(a, b)                                                                            \
+  do {                                                                                             \
+    int _a = (a), _b = (b);                                                                        \
+    if (_a != _b) {                                                                                \
+      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__, #a, _a, _b);          \
+      tests_failed++;                                                                              \
+      return;                                                                                      \
+    }                                                                                              \
   } while (0)
 
-#define ASSERT_TRUE(cond)                                                      \
-  do {                                                                         \
-    if (!(cond)) {                                                             \
-      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);     \
-      tests_failed++;                                                          \
-      return;                                                                  \
-    }                                                                          \
+#define ASSERT_TRUE(cond)                                                                          \
+  do {                                                                                             \
+    if (!(cond)) {                                                                                 \
+      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);                         \
+      tests_failed++;                                                                              \
+      return;                                                                                      \
+    }                                                                                              \
   } while (0)
 
 /* ========================================================================
@@ -138,13 +136,13 @@ static int tests_failed = 0;
  *   left  probe X = 0 + 32 + 8  = 40   (tile 5, offset 0)
  *   right probe X = 0 + 32 + 24 = 56   (tile 7, offset 0)
  *
- * sprite_y = 64 so that:
- *   top    probe Y = 64                 (tile 8, offset 0)
- *   bottom probe Y = 64 + 45 = 109     (tile 13, offset 5)
+ * sprite_y = 65 so that (with SIMON_COL_Y_OFFSET = -1):
+ *   top    probe Y = 65 - 1 = 64       (tile 8, offset 0)
+ *   bottom probe Y = 65 - 1 + 46 = 110 (tile 13, offset 6)
  * ======================================================================== */
 #define T_WORLD_X 0
 #define T_SPRITE_X 32
-#define T_SPRITE_Y 64
+#define T_SPRITE_Y 65
 
 /* Tile indices for the probes (pixel / 8) */
 #define T_LEFT_TX 5    /* 40 / 8 */

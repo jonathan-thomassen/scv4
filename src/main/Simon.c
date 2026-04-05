@@ -542,6 +542,13 @@ static void apply_collisions(int start_y_velocity, int dx, int width) {
   }
 
   resolve_collision(position.scroll_x, position.x, position.y, &dx, &dy);
+  /* Floor collision while falling: collision clamped dy, so zero velocity
+   * to trigger landing detection below.  Subtract one extra pixel so Simon's
+   * bottom sits just above the floor tile rather than on its top row. */
+  if (y_velocity > 0 && dy < y_velocity) {
+    dy -= 1;
+    y_velocity = 0;
+  }
   if (dx > 0) {
     if (!camera_frozen && position.scroll_x < layer_width - width && position.x >= 112) {
       position.scroll_x += dx;

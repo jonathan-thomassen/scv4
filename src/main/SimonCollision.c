@@ -189,9 +189,9 @@ static void move_left_probes(int world_x, int sprite_x, int sprite_y, int *displ
     }
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                     row == 0   ? sprite_y
-                     : row == 3 ? sprite_y + (BLOCK_SIZE * row) - 3
-                                : sprite_y + (BLOCK_SIZE * row) - 1,
+                     row == 0   ? SIMON_COL_TOP_Y(sprite_y)
+                     : row == 3 ? SIMON_COL_BOTTOM_Y(sprite_y)
+                                : SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * row),
                      &h_tile);
 
     if (!h_tile.empty) {
@@ -209,9 +209,9 @@ static void move_right_probes(int world_x, int sprite_x, int sprite_y, int *disp
     }
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                     row == 0   ? sprite_y
-                     : row == 3 ? sprite_y + (BLOCK_SIZE * row) - 3
-                                : sprite_y + (BLOCK_SIZE * row) - 1,
+                     row == 0   ? SIMON_COL_TOP_Y(sprite_y)
+                     : row == 3 ? SIMON_COL_BOTTOM_Y(sprite_y)
+                                : SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * row),
                      &h_tile);
 
     if (!h_tile.empty) {
@@ -231,7 +231,7 @@ static void move_up_probes(int world_x, int sprite_x, int sprite_y, int *displac
     TLN_GetLayerTile(COLLISION_LAYER,
                      column == 0 ? SIMON_COL_LEFT_X(world_x, sprite_x)
                                  : SIMON_COL_LEFT_X(world_x, sprite_x) + (BLOCK_SIZE * column) - 1,
-                     sprite_y + *displacement_y, &v_tile);
+                     SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
 
     if (!v_tile.empty) {
       *displacement_y += TILE_SIZE - v_tile.yoffset;
@@ -264,13 +264,13 @@ static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y
                                          int *displacement_x, int *displacement_y) {
   TLN_TileInfo h_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y, &h_tile);
+                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
   TLN_TileInfo v_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x),
-                   sprite_y + *displacement_y, &v_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (h_tile.empty) {
@@ -291,7 +291,7 @@ static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y
   if (h_tile.empty) {
     if (v_tile.empty) {
       int x_overlap = (SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x) - hv_tile.xoffset;
-      int y_overlap = hv_tile.yoffset - (sprite_y + *displacement_y);
+      int y_overlap = hv_tile.yoffset - (SIMON_COL_TOP_Y(sprite_y) + *displacement_y);
       if (y_overlap < x_overlap) {
         *displacement_x -= hv_tile.xoffset;
         return;
@@ -313,14 +313,14 @@ static void move_up_right_probe_up_right(int world_x, int sprite_x, int sprite_y
 static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, int *displacement_x,
                                        int *displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, sprite_y,
-                   &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
+                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), sprite_y + *displacement_y,
-                   &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (h_tile.empty) {
@@ -341,7 +341,7 @@ static void move_up_left_probe_up_left(int world_x, int sprite_x, int sprite_y, 
     if (v_tile.empty) {
       int x_overlap =
           (hv_tile.xoffset + BLOCK_SIZE) - (SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x);
-      int y_overlap = hv_tile.yoffset - (sprite_y + *displacement_y);
+      int y_overlap = hv_tile.yoffset - (SIMON_COL_TOP_Y(sprite_y) + *displacement_y);
       if (y_overlap < x_overlap) {
         *displacement_x += TILE_SIZE - hv_tile.xoffset;
         return;
@@ -461,17 +461,17 @@ static void move_down_left_probe_down_left(int world_x, int sprite_x, int sprite
 static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y,
                                         int *displacement_x, int *displacement_y) {
   TLN_TileInfo v_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x), sprite_y + *displacement_y,
-                   &v_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x),
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (v_tile.empty) {
       return;
     }
-    int h = MAX_VELOCITY - (sprite_y - (v_tile.yoffset + BLOCK_SIZE));
+    int h = MAX_VELOCITY - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
     int n = v_tile.xoffset - (SIMON_COL_LEFT_X(world_x, sprite_x));
 
     col_definition_lookup(h, n, 0, false, false, displacement_x, displacement_y);
@@ -484,16 +484,16 @@ static void move_up_left_probe_up_right(int world_x, int sprite_x, int sprite_y,
                                         int *displacement_x, int *displacement_y) {
   TLN_TileInfo v_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x),
-                   sprite_y + *displacement_y, &v_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &v_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (v_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - (sprite_y - (v_tile.yoffset + BLOCK_SIZE));
+    int h = TILE_SIZE - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
     int n = v_tile.xoffset - (SIMON_COL_RIGHT_X(world_x, sprite_x));
 
     col_definition_lookup(h, n, 0, true, false, displacement_x, displacement_y);
@@ -516,7 +516,7 @@ static void move_up_right_probe_down_right(int world_x, int sprite_x, int sprite
       return;
     }
     int h = MAX_VELOCITY - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset - sprite_y;
+    int n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
 
     col_definition_lookup(h, n, 1, false, true, displacement_x, displacement_y);
     return;
@@ -529,10 +529,10 @@ static void move_y_left_probes_left(int world_x, int sprite_x, int sprite_y, int
   for (int i = 1; i < 3; i++) {
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                     sprite_y + (BLOCK_SIZE * i) - 1, &h_tile);
+                     SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * i) - 1, &h_tile);
     TLN_TileInfo hv_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                     sprite_y + (BLOCK_SIZE * i) - 1 + *displacement_y, &hv_tile);
+                     SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * i) - 1 + *displacement_y, &hv_tile);
 
     if ((int)hv_tile.empty && (int)h_tile.empty) {
       continue;
@@ -553,10 +553,10 @@ static void move_y_right_probes_right(int world_x, int sprite_x, int sprite_y, i
   for (int i = 1; i < 3; i++) {
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                     sprite_y + (BLOCK_SIZE * i) - 1, &h_tile);
+                     SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * i) - 1, &h_tile);
     TLN_TileInfo hv_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                     sprite_y + (BLOCK_SIZE * i) - 1 + *displacement_y, &hv_tile);
+                     SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * i) - 1 + *displacement_y, &hv_tile);
 
     if ((int)hv_tile.empty && (int)h_tile.empty) {
       continue;
@@ -586,7 +586,7 @@ static void move_up_left_probe_down_left(int world_x, int sprite_x, int sprite_y
       return;
     }
     int h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset - sprite_y;
+    int n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
 
     col_definition_lookup(h, n, 1, true, true, displacement_x, displacement_y);
     return;
@@ -620,17 +620,17 @@ static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite
                                            int *displacement_x, int *displacement_y) {
   TLN_TileInfo h_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y, &h_tile);
+                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (h_tile.empty) {
       return;
     }
     int h = TILE_SIZE - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset + BLOCK_SIZE - sprite_y;
+    int n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
 
     col_definition_lookup(h, n, 1, false, false, displacement_x, displacement_y);
     return;
@@ -663,18 +663,18 @@ static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprit
 static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y,
                                          int *displacement_x, int *displacement_y) {
   TLN_TileInfo h_tile;
-  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, sprite_y,
-                   &h_tile);
+  TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
+                   SIMON_COL_TOP_Y(sprite_y), &h_tile);
   TLN_TileInfo hv_tile;
   TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                   sprite_y + *displacement_y, &hv_tile);
+                   SIMON_COL_TOP_Y(sprite_y) + *displacement_y, &hv_tile);
 
   if (hv_tile.empty) {
     if (h_tile.empty) {
       return;
     }
     int h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset + BLOCK_SIZE - sprite_y;
+    int n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
 
     col_definition_lookup(h, n, 1, true, false, displacement_x, displacement_y);
     return;

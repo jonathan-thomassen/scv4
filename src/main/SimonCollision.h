@@ -4,12 +4,14 @@
 #define TILE_SIZE 8
 #define BLOCK_SIZE 16
 #define SIMON_COL_WIDTH 16
-#define SIMON_COL_HEIGHT 46
+#define SIMON_COL_HEIGHT 47
+#define SIMON_COL_Y_OFFSET -1
 #define SIMON_COL_X_OFFSET 8
 #define SIMON_COL_LEFT_X(world_x, sprite_x) ((world_x) + (sprite_x) + SIMON_COL_X_OFFSET)
 #define SIMON_COL_RIGHT_X(world_x, sprite_x)                                                       \
-  ((world_x) + (sprite_x) + SIMON_COL_X_OFFSET + SIMON_COL_WIDTH)
-#define SIMON_COL_BOTTOM_Y(sprite_y) ((sprite_y) + SIMON_COL_HEIGHT - 1)
+  ((world_x) + (sprite_x) + SIMON_COL_X_OFFSET + SIMON_COL_WIDTH - 1)
+#define SIMON_COL_TOP_Y(sprite_y) ((sprite_y) + SIMON_COL_Y_OFFSET)
+#define SIMON_COL_BOTTOM_Y(sprite_y) ((sprite_y) + SIMON_COL_Y_OFFSET + SIMON_COL_HEIGHT - 1)
 #define MAX_VELOCITY 8
 
 /* Load the col_definition lookup table from disk.  Must be called once
