@@ -1,43 +1,43 @@
 #include "Simon.h"
 #include "SimonCollision.h"
 
-#include <stdlib.h>
-#include <string.h>
-
+#include "GridSpriteset.h"
 #include "LoadFile.h"
 #include "Sandblock.h"
 #include "Tilengine.h"
 #include "Whip.h"
 
-#define HANGTIME              8
-#define TERM_VELOCITY         10
-#define AIR_TURN_DELAY        6
-#define SIMON_HEIGHT          48
-#define SIMON_WIDTH           32 /* total sprite width  (2 × 16 px tiles) */
-#define SIMON_SEG_W           16 /* width of one subsprite tile           */
-#define SIMON_MAX_STAGES      8  /* max animation stages per section      */
-#define SIMON_MAX_SEGS        8  /* max subsprites per stage              */
-#define WALK_FRAMES_PER_STAGE 8  /* game frames each walk frame is shown  */
-#define JUMP_ARC_LEN_SHORT    45
-#define JUMP_ARC_LEN_TALL     46
-#define JUMP_ARC_LEN_HIGHER   48
-#define BRIDGE_FLOOR_Y        32767
-#define CEILING_FALL_TV       8
-#define CEILING_GAP           0 /* empty pixel rows between Simon's head and ceiling tile */
+#define HANGTIME               8
+#define TERM_VELOCITY          10
+#define AIR_TURN_DELAY         6
+#define SIMON_HEIGHT           48
+#define SIMON_WIDTH            32 /* total sprite width  (2 × 16 px tiles) */
+#define SIMON_SEG_W            16 /* width of one subsprite tile           */
+#define SIMON_MAX_STAGES       8  /* max animation stages per section      */
+#define SIMON_MAX_SEGS         8  /* max subsprites per stage              */
+#define WALK_FRAMES_PER_STAGE  8  /* game frames each walk frame is shown  */
+#define JUMP_ARC_LEN_SHORT     45
+#define JUMP_ARC_LEN_TALL      46
+#define JUMP_ARC_LEN_HIGHER    48
+#define BRIDGE_FLOOR_Y         32767
+#define CEILING_FALL_TV        8
+#define CEILING_GAP            0   /* empty pixel rows between Simon's head and ceiling tile */
+#define SCROLL_RIGHT_THRESHOLD 112 /* screen-x at which camera begins scrolling right */
+#define SCROLL_LEFT_THRESHOLD  128 /* screen-x at which camera begins scrolling left  */
 
 /* Gradual acceleration after falling from a ceiling hang.
  * Odd velocity steps hold for 3 frames, even steps for 2, until CEILING_FALL_TV.
  * {1, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8} */
 static int ceiling_fall_dy_at(int frame) {
-  int velocity = 1;
-  int i = 0;
-  while (velocity < CEILING_FALL_TV) {
-    int count = (velocity & 1) ? 3 : 2;
-    if (frame < i + count) {
-      return velocity;
+  int vel = 1;
+  int acc = 0;
+  while (vel < CEILING_FALL_TV) {
+    int count = (vel & 1) ? 3 : 2;
+    if (frame < acc + count) {
+      return vel;
     }
-    i += count;
-    velocity++;
+    acc += count;
+    vel++;
   }
   return CEILING_FALL_TV;
 }
@@ -70,23 +70,9 @@ typedef enum {
   DIR_RIGHT,
 } Direction;
 
-typedef struct {
-  int pic, dx, dy;
-} SimonSeg;
-
-typedef struct {
-  SimonSeg segs[SIMON_MAX_SEGS];
-  int count;
-} SimonStage;
-
-typedef struct {
-  SimonStage stages[SIMON_MAX_STAGES];
-  int num_stages;
-} SimonSection;
-
 static TLN_Spriteset simon;
 static TLN_Bitmap simon_bmp;
-static SimonSection sec_stand, sec_walk, sec_jump, sec_teeter, sec_crouch, sec_crouch_walk, sec_whip, sec_whip_jump,
+static MapSection sec_stand, sec_walk, sec_jump, sec_teeter, sec_crouch, sec_crouch_walk, sec_whip, sec_whip_jump,
   sec_crouch_whip, sec_whip_up, sec_whip_jump_up;
 static int walk_anim_frame;
 
@@ -134,131 +120,11 @@ void simon_clear_bridge_floor(void) {
 }
 
 /* ---------------------------------------------------------------------------
- * Internal helpers: spriteset loader, section parser, renderer
+ * Internal helpers: renderer
  * ------------------------------------------------------------------------- */
 
-static TLN_Spriteset load_grid_spriteset(const char* txt_name, const char* png_name, TLN_Bitmap* out_bitmap) {
-  FILE* file = FileOpen(txt_name);
-  if (file == NULL) {
-    return NULL;
-  }
-
-  int tw = 0;
-  int th = 0;
-  int cols = 0;
-
-  char line[64];
-  while (fgets(line, sizeof(line), file) != NULL) {
-    int v;
-    if (sscanf(line, " w = %d", &v) == 1) {
-      tw = v;
-    } else if (sscanf(line, " h = %d", &v) == 1) {
-      th = v;
-    } else if (sscanf(line, " cols = %d", &v) == 1) {
-      cols = v;
-    }
-  }
-  fclose(file);
-
-  if (tw <= 0 || th <= 0 || cols <= 0) {
-    return NULL;
-  }
-
-  TLN_Bitmap bmp = TLN_LoadBitmap(png_name);
-  if (bmp == NULL) {
-    return NULL;
-  }
-
-  int rows = TLN_GetBitmapHeight(bmp) / th;
-  int total = rows * cols;
-
-  TLN_SpriteData* data = (TLN_SpriteData*)malloc((size_t)total * sizeof(TLN_SpriteData));
-  if (data == NULL) {
-    TLN_DeleteBitmap(bmp);
-    return NULL;
-  }
-
-  for (int row = 0; row < rows; row++) {
-    for (int column = 0; column < cols; column++) {
-      TLN_SpriteData* spritedata = &data[(row * cols) + column];
-      snprintf(spritedata->name, sizeof(spritedata->name), "s%d", (row * cols) + column);
-      spritedata->x = column * tw;
-      spritedata->y = row * th;
-      spritedata->w = tw;
-      spritedata->h = th;
-    }
-  }
-
-  TLN_Spriteset spriteset = TLN_CreateSpriteset(bmp, data, total);
-  free(data);
-  /* Do NOT delete bmp here — the spriteset holds a reference to it.
-   * The caller is responsible for deleting it after the spriteset is freed. */
-  *out_bitmap = bmp;
-  return spriteset;
-}
-
-/*
- * Parses a single named group from a simon_map.txt-style file into *out.
- * Group format mirrors whip0_map0.txt: "# name" header, then "N:" stage
- * headers, then "sP = ( dx, dy)" subsprite lines.  No flip flags are used
- * for Simon — mirroring is applied uniformly when facing left.
- */
-static void load_simon_section(const char* filename, const char* section, SimonSection* out) {
-  out->num_stages = 0;
-  for (int stage = 0; stage < SIMON_MAX_STAGES; stage++) {
-    out->stages[stage].count = 0;
-  }
-
-  FILE* file = FileOpen(filename);
-  if (file == NULL) {
-    return;
-  }
-
-  bool in_section = false;
-  int cur_stage = -1;
-  char line[128];
-  while (fgets(line, sizeof(line), file) != NULL) {
-    if (line[0] == '#') {
-      char name[64] = "";
-      sscanf(line, "# %63s", name);
-      in_section = (strcmp(name, section) == 0);
-      cur_stage = -1;
-      continue;
-    }
-    if (!in_section) {
-      continue;
-    }
-
-    int idx = -1;
-    if (sscanf(line, " %d :", &idx) == 1 && idx >= 0 && idx < SIMON_MAX_STAGES) {
-      cur_stage = idx;
-      if (cur_stage + 1 > out->num_stages) {
-        out->num_stages = cur_stage + 1;
-      }
-      continue;
-    }
-
-    if (cur_stage < 0 || out->stages[cur_stage].count >= SIMON_MAX_SEGS) {
-      continue;
-    }
-
-    int pic = -1;
-    int dx = 0;
-    int dy = 0;
-    if (sscanf(line, " s%d = ( %d , %d )", &pic, &dx, &dy) < 3 || pic < 0) {
-      continue;
-    }
-
-    SimonSeg* seg = &out->stages[cur_stage].segs[out->stages[cur_stage].count++];
-    seg->pic = pic;
-    seg->dx = dx;
-    seg->dy = dy;
-  }
-  fclose(file);
-}
-
 /* Renders one stage of a section using the current position and direction. */
-static void render_section_stage(const SimonSection* sec, int stage_idx) {
+static void render_section_stage(const MapSection* sec, int stage_idx) {
   if (sec->num_stages == 0) {
     for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
       TLN_DisableSprite(SIMON_SPRITE_BASE + i);
@@ -268,11 +134,11 @@ static void render_section_stage(const SimonSection* sec, int stage_idx) {
   if (stage_idx >= sec->num_stages) {
     stage_idx = sec->num_stages - 1;
   }
-  const SimonStage* stage = &sec->stages[stage_idx];
+  const MapStage* stage = &sec->stages[stage_idx];
   bool facing_right = (direction == DIR_RIGHT);
   for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
     if (i < stage->count) {
-      const SimonSeg* seg = &stage->segs[i];
+      const MapSeg* seg = &stage->segs[i];
       int worldx = position.x + ((int)facing_right ? seg->dx : (SIMON_WIDTH - seg->dx - SIMON_SEG_W));
       TLN_SetSpriteSet(SIMON_SPRITE_BASE + i, simon);
       TLN_SetSpritePicture(SIMON_SPRITE_BASE + i, seg->pic);
@@ -291,7 +157,7 @@ static void render_section_stage(const SimonSection* sec, int stage_idx) {
  * and from any function that moves Simon outside the normal update loop.
  */
 static void render_current_state(void) {
-  const SimonSection* sec;
+  const MapSection* sec;
   int stage = 0;
   if (whip_is_active()) {
     if (state == SIMON_JUMPING) {
@@ -337,18 +203,18 @@ static void render_current_state(void) {
 
 void simon_init(void) {
   load_col_definition();
-  simon = load_grid_spriteset("simon.txt", "simon.png", &simon_bmp);
-  load_simon_section("simon_map.txt", "stand", &sec_stand);
-  load_simon_section("simon_map.txt", "walk", &sec_walk);
-  load_simon_section("simon_map.txt", "jump", &sec_jump);
-  load_simon_section("simon_map.txt", "teeter", &sec_teeter);
-  load_simon_section("simon_map.txt", "crouch", &sec_crouch);
-  load_simon_section("simon_map.txt", "crouch-walk", &sec_crouch_walk);
-  load_simon_section("simon_map.txt", "whip", &sec_whip);
-  load_simon_section("simon_map.txt", "jump-whip", &sec_whip_jump);
-  load_simon_section("simon_map.txt", "crouch-whip", &sec_crouch_whip);
-  load_simon_section("simon_map.txt", "whip-up", &sec_whip_up);
-  load_simon_section("simon_map.txt", "jump-whip-up", &sec_whip_jump_up);
+  simon = load_grid_spriteset("simon", &simon_bmp);
+  load_map_section("simon_map.txt", "stand", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_stand);
+  load_map_section("simon_map.txt", "walk", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_walk);
+  load_map_section("simon_map.txt", "jump", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_jump);
+  load_map_section("simon_map.txt", "teeter", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_teeter);
+  load_map_section("simon_map.txt", "crouch", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_crouch);
+  load_map_section("simon_map.txt", "crouch-walk", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_crouch_walk);
+  load_map_section("simon_map.txt", "whip", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip);
+  load_map_section("simon_map.txt", "jump-whip", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_jump);
+  load_map_section("simon_map.txt", "crouch-whip", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_crouch_whip);
+  load_map_section("simon_map.txt", "whip-up", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_up);
+  load_map_section("simon_map.txt", "jump-whip-up", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_jump_up);
 
   layer_width = TLN_GetLayerWidth(1);
   state = SIMON_IDLE;
@@ -433,13 +299,13 @@ static int execute_move(Direction input, bool changing_dir) {
   }
   update_facing(input); /* flip sprite only when movement commits */
 
-  int dx = 0;
+  int displacement_x = 0;
   if (input == DIR_RIGHT) {
-    dx = (++move_frame % 4 == 0) ? 2 : 1;
+    displacement_x = (++move_frame % 4 == 0) ? 2 : 1;
   } else if (input == DIR_LEFT) {
-    dx = (++move_frame % 4 == 0) ? -2 : -1;
+    displacement_x = (++move_frame % 4 == 0) ? -2 : -1;
   }
-  return dx;
+  return displacement_x;
 }
 
 /**
@@ -452,7 +318,7 @@ static int apply_movement(Direction input) {
   bool first_frame = (prev_input == DIR_NONE && input != DIR_NONE) != 0;
   prev_input = input;
 
-  int dx = 0;
+  int displacement_x = 0;
   switch (state) {
     case SIMON_TEETER:
     case SIMON_IDLE:
@@ -463,7 +329,7 @@ static int apply_movement(Direction input) {
     case SIMON_WALKING:
     case SIMON_JUMPING:
       if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
-        dx = execute_move(input, changing_dir);
+        displacement_x = execute_move(input, changing_dir);
       } else {
         move_frame = 0;
       }
@@ -475,12 +341,12 @@ static int apply_movement(Direction input) {
       /* Directional input while crouching starts a crouch-walk. */
       if (input) {
         simon_set_state(SIMON_CROUCH_WALKING);
-        dx = execute_move(input, changing_dir);
+        displacement_x = execute_move(input, changing_dir);
       }
       break;
     case SIMON_CROUCH_WALKING:
       if (!first_frame && (!changing_dir || dir_change_timer > AIR_TURN_DELAY)) {
-        dx = execute_move(input, changing_dir);
+        displacement_x = execute_move(input, changing_dir);
       } else {
         move_frame = 0;
       }
@@ -492,67 +358,116 @@ static int apply_movement(Direction input) {
       /* No movement during a crouched whip swing. */
       break;
   }
-  return dx;
+  return displacement_x;
 }
 
-/**
- * Applies ceiling/floor collision and detects landing.
- * \param start_y_velocity  Vertical velocity captured before advance_gravity() was called.
- */
-static void apply_collisions(int start_y_velocity, int dx, int width) {
-  int arc_len = (int)jump_arc_higher ? JUMP_ARC_LEN_HIGHER
-                : (int)jump_arc_tall ? JUMP_ARC_LEN_TALL
-                                     : JUMP_ARC_LEN_SHORT;
-  int dy;
-  if (state == SIMON_JUMPING) {
-    if (ceiling_hang > 0) {
-      ceiling_hang--;
-      dy = 0; /* hang motionless against ceiling */
-      y_velocity = 0;
-    } else if (ceiling_fall_frame >= 0) {
-      /* gradual acceleration after ceiling hang */
-      dy = ceiling_fall_dy_at(ceiling_fall_frame++);
-      y_velocity = dy;
-    } else {
-      const int* arc = (int)jump_arc_higher ? jump_arc_dy_higher
-                       : (int)jump_arc_tall ? jump_arc_dy_tall
-                                            : jump_arc_dy_short;
-      if (jump_frame < arc_len) {
-        dy = arc[jump_frame++];
-      } else {
-        dy = CEILING_FALL_TV; /* constant fall after arc ends */
-      }
-      y_velocity = dy; /* proxy: keeps landing detection working */
-    }
-  } else {
-    /* non-jumping states: original velocity-based movement */
-    dy = (y_velocity > 0 ? y_velocity / 3 : y_velocity >> 2);
+/* Computes this frame's vertical displacement and updates y_velocity. */
+static int compute_displacement_y(void) {
+  if (state != SIMON_JUMPING) {
+    return (y_velocity > 0 ? y_velocity / 3 : y_velocity >> 2);
   }
+  if (ceiling_hang > 0) {
+    ceiling_hang--;
+    y_velocity = 0;
+    return 0;
+  }
+  if (ceiling_fall_frame >= 0) {
+    int displacement_y = ceiling_fall_dy_at(ceiling_fall_frame++);
+    y_velocity = displacement_y;
+    return displacement_y;
+  }
+  int arc_len;
+  const int* arc;
+  if (jump_arc_higher) {
+    arc_len = JUMP_ARC_LEN_HIGHER;
+    arc = jump_arc_dy_higher;
+  } else if (jump_arc_tall) {
+    arc_len = JUMP_ARC_LEN_TALL;
+    arc = jump_arc_dy_tall;
+  } else {
+    arc_len = JUMP_ARC_LEN_SHORT;
+    arc = jump_arc_dy_short;
+  }
+  int displacement_y = (jump_frame < arc_len) ? arc[jump_frame++] : CEILING_FALL_TV;
+  y_velocity = displacement_y;
+  return displacement_y;
+}
 
-  if (dx == 0 && dy == 0) {
+/* Marks sandblocks that Simon is currently standing on. */
+static void mark_stood_sandblocks(void) {
+  int feet_y = SIMON_COL_BOTTOM_Y(position.y);
+  int left_x = SIMON_COL_LEFT_X(position.scroll_x, position.x);
+  int right_x = SIMON_COL_RIGHT_X(position.scroll_x, position.x);
+  for (int i = 0; i < sb_count; i++) {
+    int sb_top = sb_cache[i].world_y;
+    int sb_left = sb_cache[i].world_x;
+    int sb_right = sb_cache[i].world_x + SANDBLOCK_WIDTH - 1;
+    if (right_x >= sb_left && left_x <= sb_right && feet_y == sb_top - 1) {
+      sandblock_mark_stood(sb_cache[i].index);
+    }
+  }
+}
+
+/* Clamps downward displacement_y against active sandblock tops. */
+static int clamp_sandblock_floor(int displacement_y) {
+  int feet_y = SIMON_COL_BOTTOM_Y(position.y);
+  int left_x = SIMON_COL_LEFT_X(position.scroll_x, position.x);
+  int right_x = SIMON_COL_RIGHT_X(position.scroll_x, position.x);
+  for (int i = 0; i < sb_count; i++) {
+    int sb_top = sb_cache[i].world_y;
+    int sb_left = sb_cache[i].world_x;
+    int sb_right = sb_cache[i].world_x + SANDBLOCK_WIDTH - 1;
+    if (right_x < sb_left || left_x > sb_right) {
+      continue;
+    }
+    if (feet_y < sb_top && feet_y + displacement_y >= sb_top) {
+      displacement_y = sb_top - feet_y - 1;
+      sandblock_mark_stood(sb_cache[i].index);
+    }
+  }
+  return displacement_y;
+}
+
+/* Applies horizontal displacement with camera scrolling logic. */
+static void apply_horizontal_scroll(int displacement_x) {
+  int width = TLN_GetWidth();
+  if (displacement_x > 0) {
+    if (!camera_frozen && position.scroll_x < layer_width - width && position.x >= SCROLL_RIGHT_THRESHOLD) {
+      position.scroll_x += displacement_x;
+    } else if (position.x < SCROLL_RIGHT_THRESHOLD || position.x < width - SIMON_COL_WIDTH) {
+      position.x += displacement_x;
+    }
+  } else if (displacement_x < 0) {
+    if (!camera_frozen && position.scroll_x > 0 && position.x <= SCROLL_LEFT_THRESHOLD) {
+      position.scroll_x += displacement_x;
+    } else if (position.x > -4) {
+      position.x += displacement_x;
+    }
+  }
+}
+
+/* Applies ceiling/floor collision and detects landing. */
+static void apply_collisions(int displacement_x) {
+  int start_y_velocity = y_velocity;
+  int displacement_y = compute_displacement_y();
+
+  mark_stood_sandblocks();
+
+  if (displacement_x == 0 && displacement_y == 0) {
     return;
   }
 
-  resolve_collision(position.scroll_x, position.x, position.y, &dx, &dy);
-  /* Floor collision while falling: collision clamped dy, so zero velocity
-   * to trigger landing detection below. */
-  if (y_velocity > 0 && dy < y_velocity) {
+  resolve_collision(position.scroll_x, position.x, position.y, &displacement_x, &displacement_y);
+
+  if (displacement_y > 0) {
+    displacement_y = clamp_sandblock_floor(displacement_y);
+  }
+
+  if (y_velocity > 0 && displacement_y < y_velocity) {
     y_velocity = 0;
   }
-  if (dx > 0) {
-    if (!camera_frozen && position.scroll_x < layer_width - width && position.x >= 112) {
-      position.scroll_x += dx;
-    } else if (position.x < 112 || position.x < width - 16) {
-      position.x += dx;
-    }
-  } else if (dx < 0) {
-    if (!camera_frozen && position.scroll_x > 0 && position.x <= 128) {
-      position.scroll_x += dx;
-    } else if (position.x > -4) {
-      position.x += dx;
-    }
-  }
-  position.y += dy;
+  apply_horizontal_scroll(displacement_x);
+  position.y += displacement_y;
   if (start_y_velocity > 0 && y_velocity == 0) {
     simon_set_state(SIMON_IDLE);
   }
@@ -563,71 +478,115 @@ static void apply_collisions(int start_y_velocity, int dx, int width) {
   }
 }
 
-void simon_tasks(void) {
-  sb_count = sandblock_snapshot(sb_cache);
+/**
+ * Returns true if there is solid ground directly beneath Simon's collision box.
+ * Checks tile collision layer, sandblocks, and the bridge floor override.
+ */
+static bool has_ground_support(void) {
+  int check_y = SIMON_COL_BOTTOM_Y(position.y) + 1;
+  int left_x = SIMON_COL_LEFT_X(position.scroll_x, position.x);
+  int right_x = SIMON_COL_RIGHT_X(position.scroll_x, position.x);
 
-  Direction input = DIR_NONE;
-  bool jump = false;
-  bool crouch_held = (int)TLN_GetInput(INPUT_DOWN) != 0;
+  /* Tile collision layer */
+  TLN_TileInfo tile;
+  TLN_GetLayerTile(COLLISION_LAYER, left_x, check_y, &tile);
+  if (!tile.empty) {
+    return true;
+  }
+  TLN_GetLayerTile(COLLISION_LAYER, right_x, check_y, &tile);
+  if (!tile.empty) {
+    return true;
+  }
 
-  /* While whipping in the air, allow directional movement but suppress jump.
-   * On the ground, suppress all input so Simon stays planted.
-   * While crouching (stationary), allow left/right for crouch-walk but not jump. */
+  /* Sandblocks */
+  int feet_y = SIMON_COL_BOTTOM_Y(position.y);
+  for (int i = 0; i < sb_count; i++) {
+    int sb_top = sb_cache[i].world_y;
+    int sb_left = sb_cache[i].world_x;
+    int sb_right = sb_cache[i].world_x + SANDBLOCK_WIDTH - 1;
+    if (right_x >= sb_left && left_x <= sb_right && feet_y == sb_top - 1) {
+      return true;
+    }
+  }
+
+  /* Bridge floor override */
+  return bridge_floor != BRIDGE_FLOOR_Y;
+}
+
+/* ---------------------------------------------------------------------------
+ * simon_tasks() helpers — each owns one phase of the per-frame update
+ * ------------------------------------------------------------------------- */
+
+typedef struct {
+  Direction dir;
+  bool jump;
+  bool crouch_held;
+} SimonInput;
+
+/* Reads gamepad state with whip / crouch suppression rules applied. */
+static SimonInput read_input(void) {
+  SimonInput inp = {DIR_NONE, false, false};
+  inp.crouch_held = (int)TLN_GetInput(INPUT_DOWN) != 0;
+
   bool whip_airborne = ((int)whip_is_active() && (state == SIMON_JUMPING)) != 0;
   bool is_crouching =
     (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
   if (!whip_is_active() || (int)whip_airborne) {
     if (TLN_GetInput(INPUT_LEFT)) {
-      input = DIR_LEFT;
+      inp.dir = DIR_LEFT;
     } else if (TLN_GetInput(INPUT_RIGHT)) {
-      input = DIR_RIGHT;
+      inp.dir = DIR_RIGHT;
     }
     if (!whip_is_active() && !is_crouching && (int)TLN_GetInput(INPUT_A)) {
-      jump = true;
+      inp.jump = true;
     }
   }
 
-  /* Track whether jump button was released since last jump. */
   if (!TLN_GetInput(INPUT_A)) {
     jump_was_released = true;
   }
+  return inp;
+}
 
-  int width = TLN_GetWidth();
-  int desired_dx = apply_movement(input);
-
-  if ((int)jump && (int)jump_was_released && state != SIMON_JUMPING) {
-    simon_set_state(SIMON_JUMPING);
+/* Arc-type commitment: deferred until the earliest frame the button *could*
+ * have been released to distinguish all three hold durations.
+ * Frame 1: if INPUT_A already released → short arc (tap).
+ * Frame 2: if INPUT_A still held → higher arc (3+ frames); released → tall. */
+static void commit_jump_arc(void) {
+  if (state != SIMON_JUMPING || jump_arc_committed) {
+    return;
   }
-
-  /* Arc-type commitment: deferred until the earliest frame the button *could*
-   * have been released to distinguish all three hold durations.
-   * Frame 1: if INPUT_A already released → short arc (tap).
-   * Frame 2: if INPUT_A still held → higher arc (3+ frames); released → tall. */
-  if (state == SIMON_JUMPING && !jump_arc_committed) {
-    if (jump_frame == 1 && !TLN_GetInput(INPUT_A)) {
-      jump_arc_committed = true; /* short: tall and higher stay false */
-    } else if (jump_frame == 2) {
-      jump_arc_committed = true;
-      if (TLN_GetInput(INPUT_A)) {
-        jump_arc_higher = true;
-      } else {
-        jump_arc_tall = true;
-      }
+  if (jump_frame == 1 && !TLN_GetInput(INPUT_A)) {
+    jump_arc_committed = true; /* short: tall and higher stay false */
+  } else if (jump_frame == 2) {
+    jump_arc_committed = true;
+    if (TLN_GetInput(INPUT_A)) {
+      jump_arc_higher = true;
+    } else {
+      jump_arc_tall = true;
     }
   }
+}
 
-  int start_y_velocity = y_velocity;
-  apply_collisions(start_y_velocity, desired_dx, width);
-
-  /* If collisions landed Simon into IDLE but a direction is still held,
-   * promote immediately to WALKING so the idle sprite never shows for one
-   * frame. */
-  if (state == SIMON_IDLE && input != DIR_NONE) {
-    simon_set_state(SIMON_WALKING);
+/* If Simon is on the ground but there is no solid tile, sandblock, or
+ * bridge beneath his feet, start falling. */
+static void begin_edge_fall(void) {
+  if (state == SIMON_JUMPING || has_ground_support()) {
+    return;
   }
+  state = SIMON_JUMPING;
+  jump_frame = JUMP_ARC_LEN_HIGHER; /* past all arcs — fall immediately */
+  jump_arc_committed = true;
+  jump_arc_higher = false;
+  jump_arc_tall = false;
+  jump_was_released = true;
+  y_velocity = 1;
+  ceiling_hang = 0;
+  ceiling_fall_frame = -1;
+}
 
-  /* Crouch: down held while on the ground (not jumping, not whipping). */
-  bool on_ground = (state != SIMON_JUMPING);
+/* Crouch / uncrouch / crouch-whip transitions. */
+static void update_crouch_state(bool crouch_held, bool on_ground) {
   if ((int)crouch_held && (int)on_ground && !whip_is_active()) {
     if (state == SIMON_WALKING) {
       simon_set_state(SIMON_CROUCH_WALKING);
@@ -635,7 +594,6 @@ void simon_tasks(void) {
       simon_set_state(SIMON_CROUCHING);
     }
   } else if (state == SIMON_CROUCH_WHIPPING) {
-    /* S released while crouch-whipping: hold crouch until whip finishes. */
     if (!whip_is_active()) {
       simon_set_state((int)crouch_held ? SIMON_CROUCHING : SIMON_IDLE);
     }
@@ -643,17 +601,46 @@ void simon_tasks(void) {
     simon_set_state(state == SIMON_CROUCH_WALKING ? SIMON_WALKING : SIMON_IDLE);
   }
 
-  /* Transition crouching states to CROUCH_WHIPPING when whip fires. */
   if ((int)whip_is_active() && (int)on_ground && (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING)) {
     simon_set_state(SIMON_CROUCH_WHIPPING);
   }
+}
 
-  /* Teeter: idle on the bridge surface with no player input. */
+/* Teeter: idle on the bridge surface with no player input. */
+static void update_teeter_state(Direction input) {
   if (state == SIMON_IDLE && bridge_floor != BRIDGE_FLOOR_Y && input == DIR_NONE) {
     simon_set_state(SIMON_TEETER);
   } else if (state == SIMON_TEETER && bridge_floor == BRIDGE_FLOOR_Y) {
     simon_set_state(SIMON_IDLE);
   }
+}
+
+void simon_tasks(void) {
+  sb_count = sandblock_snapshot(sb_cache);
+
+  SimonInput inp = read_input();
+  int desired_dx = apply_movement(inp.dir);
+
+  if ((int)inp.jump && (int)jump_was_released && state != SIMON_JUMPING) {
+    simon_set_state(SIMON_JUMPING);
+  }
+
+  commit_jump_arc();
+
+  apply_collisions(desired_dx);
+
+  begin_edge_fall();
+
+  /* If collisions landed Simon into IDLE but a direction is still held,
+   * promote immediately to WALKING so the idle sprite never shows for one
+   * frame. */
+  if (state == SIMON_IDLE && inp.dir != DIR_NONE) {
+    simon_set_state(SIMON_WALKING);
+  }
+
+  bool on_ground = (state != SIMON_JUMPING);
+  update_crouch_state(inp.crouch_held, on_ground);
+  update_teeter_state(inp.dir);
 
   if (state == SIMON_WALKING || state == SIMON_CROUCH_WALKING) {
     walk_anim_frame++;

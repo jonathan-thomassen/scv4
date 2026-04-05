@@ -1,11 +1,8 @@
 #include "Whip.h"
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
+#include "GridSpriteset.h"
 #include "LoadFile.h" /* FileOpen() – honours TLN_SetLoadPath()  */
 #include "Simon.h"    /* SimonGetScreenX/Y, SimonFacingRight      */
 #include "Tilengine.h"
@@ -13,75 +10,6 @@
 #define SEG_SIZE       8  /* each subsprite is 8x8 px                     */
 #define SIMON_SPRITE_W 32 /* width of Simon's sprite in pixels             */
 #define NUM_STAGES     3  /* number of whip animation stages               */
-
-/*
- * Loads a spriteset from a compact grid-format txt file + matching PNG.
- *
- * The txt file contains three key = value lines in any order:
- *   w    = <tile width>
- *   h    = <tile height>
- *   cols = <number of columns>
- * Tile rows are derived from the bitmap height.  Sprites are named
- * s0, s1, … sN in row-major order.
- */
-static TLN_Spriteset load_grid_spriteset(const char* txt_name, const char* png_name, TLN_Bitmap* out_bitmap) {
-  FILE* file = FileOpen(txt_name);
-  if (file == NULL) {
-    return NULL;
-  }
-
-  int tile_width = 0;
-  int tile_height = 0;
-  int cols = 0;
-  char line[64];
-  while (fgets(line, sizeof(line), file) != NULL) {
-    int v;
-    if (sscanf(line, " w = %d", &v) == 1) {
-      tile_width = v;
-    } else if (sscanf(line, " h = %d", &v) == 1) {
-      tile_height = v;
-    } else if (sscanf(line, " cols = %d", &v) == 1) {
-      cols = v;
-    }
-  }
-  fclose(file);
-
-  if (tile_width <= 0 || tile_height <= 0 || cols <= 0) {
-    return NULL;
-  }
-
-  TLN_Bitmap bmp = TLN_LoadBitmap(png_name);
-  if (bmp == NULL) {
-    return NULL;
-  }
-
-  int rows = TLN_GetBitmapHeight(bmp) / tile_height;
-  int total = rows * cols;
-
-  TLN_SpriteData* data = (TLN_SpriteData*)malloc((size_t)total * sizeof(TLN_SpriteData));
-  if (data == NULL) {
-    TLN_DeleteBitmap(bmp);
-    return NULL;
-  }
-
-  for (int row = 0; row < rows; row++) {
-    for (int column = 0; column < cols; column++) {
-      TLN_SpriteData* sprite_data = &data[(row * cols) + column];
-      snprintf(sprite_data->name, sizeof(sprite_data->name), "s%d", (row * cols) + column);
-      sprite_data->x = column * tile_width;
-      sprite_data->y = row * tile_height;
-      sprite_data->w = tile_width;
-      sprite_data->h = tile_height;
-    }
-  }
-
-  TLN_Spriteset spriteset_inner = TLN_CreateSpriteset(bmp, data, total);
-  free(data);
-  /* Do NOT delete bmp here — the spriteset holds a reference to it.
-   * The caller is responsible for deleting it after the spriteset is freed. */
-  *out_bitmap = bmp;
-  return spriteset_inner;
-}
 
 /*
  * Number of frames each animation stage is shown.
@@ -112,28 +40,8 @@ static int frame_to_stage(int frame) {
   return NUM_STAGES - 1;
 }
 
-/*
- * Subsprite descriptor loaded from whip0_mapN.txt.
- * Positions are defined for Simon facing RIGHT (the default sprite orientation).
- * When Simon faces left, dx is mirrored as (SIMON_SPRITE_W - dx - SEG_SIZE)
- * and flip_h is inverted.
- */
-typedef struct {
-  int pic;     /* picture index in the spriteset (0-11)        */
-  int dx;      /* x offset from Simon's top-left (left-facing) */
-  int dy;      /* y offset from Simon's top-left               */
-  bool flip_h; /* sprite's own horizontal flip                 */
-  bool flip_v; /* sprite's own vertical flip                   */
-} WhipSeg;
-
-/* Runtime stage data: segments loaded from whip0_map.txt. */
-typedef struct {
-  WhipSeg segs[MAX_WHIP_SPRITES];
-  int count; /* number of valid entries (0 = stage not loaded) */
-} WhipStage;
-
-static WhipStage stages[NUM_STAGES];    /* horizontal swing (# main) */
-static WhipStage up_stages[NUM_STAGES]; /* upward swing    (# up)   */
+static MapSection stages;    /* horizontal swing (# main) */
+static MapSection up_stages; /* upward swing    (# up)   */
 
 static TLN_Spriteset spriteset;
 static TLN_Bitmap spriteset_bmp;
@@ -164,86 +72,16 @@ static void disable_all_segments(void) {
   }
 }
 
-/*
- * Parses a single map file into stages[], reading only the named group that
- * matches 'section'.
- *
- * File format:
- *   # name                 <- named group header; selects which group to load
- *   N:                     <- stage index header (0-based) within a group
- *   sP = ( dx, dy) [flags] <- subsprite line: P=picture index, dx/dy=offsets,
- *                             optional flags 'h' (flip-X) and/or 'v' (flip-Y)
- *
- * Lines starting with '#' that do not match the requested section cause all
- * subsequent stage lines to be ignored until the matching group is found.
- * Blank lines and unrecognised lines are silently skipped.
- */
-static void load_map_file(const char* filename, const char* section, WhipStage* dest) {
-  FILE* file = FileOpen(filename);
-  if (file == NULL) {
-    return;
-  }
-
-  bool in_section = false;
-  int cur_stage = -1;
-  char line[128];
-  while (fgets(line, sizeof(line), file) != NULL) {
-    /* Named group header: "# name" */
-    if (line[0] == '#') {
-      char name[64] = "";
-      sscanf(line, "# %63s", name);
-      in_section = (strcmp(name, section) == 0);
-      cur_stage = -1; /* reset stage on every group boundary */
-      continue;
-    }
-
-    if (!in_section) {
-      continue;
-    }
-
-    /* Stage index header: "N:" */
-    int idx = -1;
-    if (sscanf(line, " %d :", &idx) == 1 && idx >= 0 && idx < NUM_STAGES) {
-      cur_stage = idx;
-      continue;
-    }
-
-    if (cur_stage < 0 || dest[cur_stage].count >= MAX_WHIP_SPRITES) {
-      continue;
-    }
-
-    int pic = -1;
-    int displacement_x = 0;
-    int displacement_y = 0;
-    char flags[8] = "";
-
-    int matched = sscanf(line, " s%d = ( %d , %d ) %7s", &pic, &displacement_x, &displacement_y, flags);
-    if (matched < 3 || pic < 0) {
-      continue;
-    }
-
-    WhipSeg* segment = &dest[cur_stage].segs[dest[cur_stage].count];
-    segment->pic = pic;
-    segment->dx = displacement_x;
-    segment->dy = displacement_y;
-    segment->flip_h = (strchr(flags, 'h') != NULL);
-    segment->flip_v = (strchr(flags, 'v') != NULL);
-    dest[cur_stage].count++;
-  }
-
-  fclose(file);
-}
-
 void whip_init(void) {
-  spriteset = load_grid_spriteset("whip0.txt", "whip0.png", &spriteset_bmp);
+  spriteset = load_grid_spriteset("whip0", &spriteset_bmp);
   swing_frame = WHIP_DURATION; /* inactive */
   swing_up = false;
   prev_pressed = false;
   disable_all_segments();
 
   /* Load both swing directions from a single file. */
-  load_map_file("whip0_map.txt", "main", stages);
-  load_map_file("whip0_map.txt", "up", up_stages);
+  load_map_section("whip0_map.txt", "main", NUM_STAGES, MAX_WHIP_SPRITES, &stages);
+  load_map_section("whip0_map.txt", "up", NUM_STAGES, MAX_WHIP_SPRITES, &up_stages);
 }
 
 void whip_deinit(void) {
@@ -257,7 +95,7 @@ void whip_deinit(void) {
     spriteset_bmp = NULL;
   }
   for (int i = 0; i < NUM_STAGES; i++) {
-    stages[i].count = 0;
+    stages.stages[i].count = 0;
   }
 }
 
@@ -305,7 +143,7 @@ void whip_tasks(void) {
   }
 }
 
-bool whip_is_up(void) { return (int)((int)whip_is_active() && (int)swing_up) != 0; }
+bool whip_is_up(void) { return ((int)whip_is_active() && (int)swing_up) != 0; }
 
 void whip_render(void) {
   if (!render_pending) {
@@ -314,12 +152,12 @@ void whip_render(void) {
   int stage = last_rendered_stage;
   int sprite_x = simon_get_screen_x();
   int sprite_y = simon_get_screen_y();
-  const WhipStage* active_stages = (int)swing_up ? up_stages : stages;
-  int count = active_stages[stage].count;
+  const MapSection* active_section = (int)swing_up ? &up_stages : &stages;
+  int count = active_section->stages[stage].count;
 
   for (int seg = 0; seg < MAX_WHIP_SPRITES; seg++) {
     if (seg < count) {
-      const WhipSeg* segment = &active_stages[stage].segs[seg];
+      const MapSeg* segment = &active_section->stages[stage].segs[seg];
       int world_x;
       bool flip_h;
       if (swing_facing_right) {

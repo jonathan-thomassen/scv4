@@ -72,6 +72,7 @@ add_executable(
   intro
   src/main/Intro.c
   src/main/Profiling.c
+  src/main/GridSpriteset.c
   src/main/Simon.c
   src/main/SimonCollision.c
   src/main/Sandblock.c

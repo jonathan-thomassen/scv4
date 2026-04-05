@@ -28,6 +28,10 @@
 #define HINGE_X          223
 #define HINGE_Y          191
 
+#define BG_COLOR_RED     0x10
+#define BG_COLOR_GREEN   0x00
+#define BG_COLOR_BLUE    0x20
+
 /* Runtime-adjustable hinge position (tweaked with [ ] - = keys). */
 static int g_hinge_x = HINGE_X;
 static int g_hinge_y = HINGE_Y;
@@ -191,7 +195,7 @@ int main(int argc, const char* argv[]) {
   /* setup engine */
   TLN_Init(WIDTH, HEIGHT, NUM_LAYERS,
            1 + MAX_SANDBLOCKS + MAX_TORCHES + MAX_PROPS + MAX_SIMON_SPRITES + MAX_WHIP_SPRITES, 0);
-  TLN_SetBGColor(0x10, 0x00, 0x20);
+  TLN_SetBGColor(BG_COLOR_RED, BG_COLOR_GREEN, BG_COLOR_BLUE);
 
   /* load resources*/
   TLN_SetLoadPath("assets");
