@@ -5,7 +5,6 @@ out/
 
 # IDE
 .vs/
-.vscode/
 *.user
 CMakeSettings.json
 CMakePresets.json
@@ -29,3 +28,5 @@ coverage.txt
 # OS
 .DS_Store
 Thumbs.db
+
+.cache/

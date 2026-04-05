@@ -5,7 +5,7 @@
 #define BLOCK_SIZE 16
 #define SIMON_COL_WIDTH 16
 #define SIMON_COL_HEIGHT 47
-#define SIMON_COL_Y_OFFSET -1
+#define SIMON_COL_Y_OFFSET (-1)
 #define SIMON_COL_X_OFFSET 8
 #define SIMON_COL_LEFT_X(world_x, sprite_x) ((world_x) + (sprite_x) + SIMON_COL_X_OFFSET)
 #define SIMON_COL_RIGHT_X(world_x, sprite_x)                                                       \
