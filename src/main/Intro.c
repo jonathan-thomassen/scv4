@@ -170,7 +170,7 @@ static void update_fps_title(Uint64 *p_t0, int *p_frames) {
   if (elapsed >= 1000) {
     char title[48];
     double actual_fps = (float)*p_frames * 1000.0F / (float)elapsed;
-    SDL_snprintf(title, sizeof(title), "sc4 - %.3f fps", actual_fps);
+    SDL_snprintf(title, sizeof(title), "scv4 - %.3f fps", actual_fps);
     TLN_SetWindowTitle(title);
     *p_frames = 0;
     *p_t0 = now;

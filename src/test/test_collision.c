@@ -8,7 +8,7 @@
  *   cmake --build . --target test_collision
  *
  * Run:
- *   ./sc4/test_collision
+ *   ./scv4/test_collision
  */
 
 #ifndef LIB_EXPORTS
@@ -19,7 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Pre-include headers so their guards prevent re-inclusion from SimonCollision.c */
+/* Pre-include headers so their guards prevent re-inclusion from
+ * SimonCollision.c */
 #include "LoadFile.h"
 #include "SimonCollision.h"
 #include "Tilengine.h"
@@ -38,7 +39,8 @@ static bool mock_grid[MOCK_GRID_H][MOCK_GRID_W];
 static void mock_grid_clear(void) { memset(mock_grid, 0, sizeof(mock_grid)); }
 
 static void mock_grid_set(int tile_x, int tile_y, bool solid) {
-  if (tile_x >= 0 && tile_x < MOCK_GRID_W && tile_y >= 0 && tile_y < MOCK_GRID_H)
+  if (tile_x >= 0 && tile_x < MOCK_GRID_W && tile_y >= 0 &&
+      tile_y < MOCK_GRID_H)
     mock_grid[tile_y][tile_x] = solid;
 }
 
@@ -96,36 +98,37 @@ static int tests_failed = 0;
 
 #define TEST(name) static void name(void)
 
-#define RUN_TEST(name)                                                                             \
-  do {                                                                                             \
-    tests_run++;                                                                                   \
-    printf("  %-55s ", #name);                                                                     \
-    fflush(stdout);                                                                                \
-    name();                                                                                        \
-    tests_passed++;                                                                                \
-    printf("PASS\n");                                                                              \
+#define RUN_TEST(name)                                                         \
+  do {                                                                         \
+    tests_run++;                                                               \
+    printf("  %-55s ", #name);                                                 \
+    fflush(stdout);                                                            \
+    name();                                                                    \
+    tests_passed++;                                                            \
+    printf("PASS\n");                                                          \
   } while (0)
 
 /* ASSERT_EQ jumps out of the current test on failure via return.
  * The RUN_TEST macro skips the tests_passed++ increment, leaving the
  * count off by one — we track failures separately. */
-#define ASSERT_EQ(a, b)                                                                            \
-  do {                                                                                             \
-    int _a = (a), _b = (b);                                                                        \
-    if (_a != _b) {                                                                                \
-      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__, #a, _a, _b);          \
-      tests_failed++;                                                                              \
-      return;                                                                                      \
-    }                                                                                              \
+#define ASSERT_EQ(a, b)                                                        \
+  do {                                                                         \
+    int _a = (a), _b = (b);                                                    \
+    if (_a != _b) {                                                            \
+      printf("FAIL\n    %s:%d: %s == %d, expected %d\n", __FILE__, __LINE__,   \
+             #a, _a, _b);                                                      \
+      tests_failed++;                                                          \
+      return;                                                                  \
+    }                                                                          \
   } while (0)
 
-#define ASSERT_TRUE(cond)                                                                          \
-  do {                                                                                             \
-    if (!(cond)) {                                                                                 \
-      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);                         \
-      tests_failed++;                                                                              \
-      return;                                                                                      \
-    }                                                                                              \
+#define ASSERT_TRUE(cond)                                                      \
+  do {                                                                         \
+    if (!(cond)) {                                                             \
+      printf("FAIL\n    %s:%d: %s is false\n", __FILE__, __LINE__, #cond);     \
+      tests_failed++;                                                          \
+      return;                                                                  \
+    }                                                                          \
   } while (0)
 
 /* ========================================================================
@@ -261,7 +264,8 @@ TEST(test_move_down_solid) {
   /* Bottom probe at pixel Y=109 (tile 13, offset 5).
    * dy = 3 → query Y=112, tile 14, offset 0.
    * Make tile row 14 solid at both X columns.
-   * Correction: dy -= yoffset = 3 − 0 = 3.  That's unchanged because offset is 0.
+   * Correction: dy -= yoffset = 3 − 0 = 3.  That's unchanged because offset is
+   * 0.
    *
    * Try: dy = 4 → Y=113, tile 14, offset 1 → dy -= 1 = 3.
    * Or: make tile 13 solid (bottom probe is already at Y=109 in tile 13).
@@ -728,13 +732,13 @@ TEST(test_symmetric_left_right_clamping) {
  *   Top   Y = 65 (tile 8, off 1)   Bottom Y = 110 (tile 13, off 6)
  *
  * UP-RIGHT dx=8 dy=-7:
- *   h: (65,65) T(8,8) off(1,1)  v: (57,58) T(7,7) off(1,2)  hv: (65,58) T(8,7) off(1,2)
- * UP-LEFT dx=-8 dy=-7:
- *   h: (33,65) T(4,8) off(1,1)  v: (41,58) T(5,7) off(1,2)  hv: (33,58) T(4,7) off(1,2)
- * DOWN-RIGHT dx=8 dy=7:
- *   h: (65,109) T(8,13) off(1,5) v: (57,116) T(7,14) off(1,4) hv: (65,116) T(8,14) off(1,4)
+ *   h: (65,65) T(8,8) off(1,1)  v: (57,58) T(7,7) off(1,2)  hv: (65,58) T(8,7)
+ * off(1,2) UP-LEFT dx=-8 dy=-7: h: (33,65) T(4,8) off(1,1)  v: (41,58) T(5,7)
+ * off(1,2)  hv: (33,58) T(4,7) off(1,2) DOWN-RIGHT dx=8 dy=7: h: (65,109)
+ * T(8,13) off(1,5) v: (57,116) T(7,14) off(1,4) hv: (65,116) T(8,14) off(1,4)
  * DOWN-LEFT dx=-8 dy=7:
- *   h: (33,109) T(4,13) off(1,5) v: (41,116) T(5,14) off(1,4) hv: (33,116) T(4,14) off(1,4)
+ *   h: (33,109) T(4,13) off(1,5) v: (41,116) T(5,14) off(1,4) hv: (33,116)
+ * T(4,14) off(1,4)
  * ========================================================================= */
 #define B_WX 0
 #define B_SX 33
@@ -775,7 +779,8 @@ TEST(test_load_col_out_of_range_section) {
 TEST(test_load_col_overflow_rows) {
   FILE *tf = tmpfile();
   ASSERT_TRUE(tf != NULL);
-  /* Section 1x1 with >8 data rows: extra rows hit cur_row >= COL_DEF_ROWS guard */
+  /* Section 1x1 with >8 data rows: extra rows hit cur_row >= COL_DEF_ROWS guard
+   */
   fprintf(tf, "# 1x1\n"
               "V, -, -, -, -, -, -, -, -\n" /* 0 */
               "V, -, -, -, -, -, -, -, -\n" /* 1 */
@@ -1137,7 +1142,8 @@ TEST(test_dl_probe_D_all_solid) {
 
 TEST(test_middle_right_h_solid) {
   mock_grid_clear();
-  /* Position B, dx=8 → right middle probe at (65, 80) T(8,10). Solid → dx clamped. */
+  /* Position B, dx=8 → right middle probe at (65, 80) T(8,10). Solid → dx
+   * clamped. */
   mock_grid_set(8, 10, true);
   int dx = 8, dy = -7;
   move_y_right_probes_right(B_WX, B_SX, B_SY, &dx, &dy);
@@ -1177,7 +1183,8 @@ TEST(test_middle_left_hv_only_solid) {
 
 TEST(test_ur_secondary_up_left_hv_solid) {
   mock_grid_clear();
-  /* move_up_right_probe_up_left: hv at (left_x+dx, sprite_y+dy) = (49,58) T(6,7) */
+  /* move_up_right_probe_up_left: hv at (left_x+dx, sprite_y+dy) = (49,58)
+   * T(6,7) */
   mock_grid_set(6, 7, true);
   int dx = 8, dy = -7;
   move_up_right_probe_up_left(B_WX, B_SX, B_SY, &dx, &dy);

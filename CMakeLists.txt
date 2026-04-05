@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sc4 LANGUAGES C)
+project(scv4 LANGUAGES C)
 
 # Generate compile_commands.json for IDE/language server support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -61,7 +61,7 @@ endif()
 # incremental build, not only when CMake is re-configured. The destination is
 # removed first so deleted source files don't linger.
 add_custom_target(
-  copy_sc4_assets ALL
+  copy_scv4_assets ALL
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_CURRENT_BINARY_DIR}/assets"
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets"
@@ -119,12 +119,12 @@ if(COVERAGE AND NOT MSVC)
   endif()
 endif()
 
-# Master list of all sc4 targets, used for dependency wiring below.
-set(SC4_TARGETS intro)
+# Master list of all scv4 targets, used for dependency wiring below.
+set(SCV4_TARGETS intro)
 
 # Must wait for assets to be in the build directory.
-foreach(SC4_TARGET ${SC4_TARGETS})
-  add_dependencies(${SC4_TARGET} copy_sc4_assets)
+foreach(SCV4_TARGET ${SCV4_TARGETS})
+  add_dependencies(${SCV4_TARGET} copy_scv4_assets)
 endforeach()
 
 # Copy required DLLs on MinGW once
@@ -135,15 +135,15 @@ if(MINGW)
 
   if(DEFINED MINGW_BIN_DIR)
     add_custom_target(
-      copy_sc4_dlls
+      copy_scv4_dlls
       COMMAND
         ${CMAKE_COMMAND} -E copy_if_different "${MINGW_BIN_DIR}/libpng16-16.dll"
         "${MINGW_BIN_DIR}/zlib1.dll" "${MINGW_BIN_DIR}/SDL3.dll"
         "${CMAKE_CURRENT_BINARY_DIR}"
-      COMMENT "Copying required DLLs to sc4 directory")
+      COMMENT "Copying required DLLs to scv4 directory")
 
-    foreach(SC4_TARGET ${SC4_TARGETS})
-      add_dependencies(${SC4_TARGET} copy_sc4_dlls)
+    foreach(SCV4_TARGET ${SCV4_TARGETS})
+      add_dependencies(${SCV4_TARGET} copy_scv4_dlls)
     endforeach()
   endif()
 endif()

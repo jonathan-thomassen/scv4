@@ -1,0 +1,200 @@
+name: CI
+
+on:
+    push:
+        branches: ["**"]
+    pull_request:
+        branches: ["**"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Install system dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    cmake ninja-build \
+                    libpng-dev zlib1g-dev \
+                    cppcheck clang-tidy valgrind gcovr \
+                    libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+                    libxinerama-dev libxss-dev libxfixes-dev \
+                    libasound2-dev libpulse-dev libdbus-1-dev
+
+            - name: Cache SDL3
+              id: cache_sdl3
+              uses: actions/cache@v5
+              with:
+                  path: /opt/sdl3
+                  key: sdl3-3.2.8-${{ runner.os }}
+
+            - name: Install SDL3
+              if: steps.cache_sdl3.outputs.cache-hit != 'true'
+              run: |
+                  SDL_VERSION=3.2.8
+                  curl -L "https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL3-${SDL_VERSION}.tar.gz" \
+                    | tar xz
+                  cmake -S SDL3-${SDL_VERSION} -B sdl3-build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DSDL_SHARED=ON -DSDL_STATIC=OFF \
+                    -DCMAKE_INSTALL_PREFIX=/opt/sdl3
+                  cmake --build sdl3-build
+                  cmake --install sdl3-build
+
+            - name: Cache Tilengine
+              id: cache_tilengine
+              uses: actions/cache@v5
+              with:
+                  path: /opt/tilengine
+                  key: tilengine-${{ hashFiles('.github/workflows/ci.yml') }}-${{ runner.os }}
+
+            - name: Build and install Tilengine
+              if: steps.cache_tilengine.outputs.cache-hit != 'true'
+              run: |
+                  git clone --depth 1 https://github.com/megamarc/Tilengine.git /tmp/Tilengine
+                  cmake -S /tmp/Tilengine -B /tmp/Tilengine/build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCMAKE_PREFIX_PATH=/opt/sdl3 \
+                    -DCMAKE_INSTALL_PREFIX=/opt/tilengine
+                  cmake --build /tmp/Tilengine/build
+                  # Install headers and library manually
+                  mkdir -p /opt/tilengine/{include,src,lib}
+                  cp /tmp/Tilengine/include/*.h /opt/tilengine/include/
+                  cp /tmp/Tilengine/src/*.h /opt/tilengine/src/
+                  cp /tmp/Tilengine/build/libTilengine.a /opt/tilengine/lib/ 2>/dev/null || \
+                  cp /tmp/Tilengine/build/libTilengine.so /opt/tilengine/lib/ 2>/dev/null || true
+
+            - name: Configure (with sanitizers)
+              run: |
+                  cmake -S . -B build -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Debug \
+                    -DSANITIZE=ON \
+                    -DCMAKE_PREFIX_PATH=/opt/sdl3 \
+                    -DTILENGINE_DIR=/opt/tilengine
+
+            - name: Build
+              id: build
+              continue-on-error: true
+              run: cmake --build build 2>&1 | tee /tmp/build.log; exit ${PIPESTATUS[0]}
+
+            - name: Tests (sanitizers)
+              id: tests
+              continue-on-error: true
+              run: cd build && ctest --output-on-failure 2>&1 | tee /tmp/tests.log; exit ${PIPESTATUS[0]}
+
+            - name: cppcheck
+              id: cppcheck
+              continue-on-error: true
+              run: |
+                  cppcheck \
+                    --enable=warning,style,performance \
+                    --std=c23 \
+                    -I src/main \
+                    --suppress=missingIncludeSystem \
+                    --error-exitcode=1 \
+                    src/ 2>&1 | tee /tmp/cppcheck.log; exit ${PIPESTATUS[0]}
+
+            - name: clang-tidy
+              id: clang_tidy
+              continue-on-error: true
+              run: |
+                  clang-tidy \
+                    src/main/Intro.c src/main/Drawbridge.c src/main/Simon.c \
+                    src/main/SimonCollision.c src/main/Hud.c src/main/Prop.c \
+                    src/main/Sandblock.c src/main/Torch.c src/main/Profiling.c \
+                    src/main/Whip.c \
+                    -p build 2>&1 | tee /tmp/clang-tidy.log; exit ${PIPESTATUS[0]}
+
+            - name: Configure (Valgrind, no sanitizers)
+              run: |
+                  cmake -S . -B build-valgrind -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Debug \
+                    -DCMAKE_PREFIX_PATH=/opt/sdl3 \
+                    -DTILENGINE_DIR=/opt/tilengine
+
+            - name: Build (Valgrind)
+              id: build_valgrind
+              continue-on-error: true
+              run: cmake --build build-valgrind --target test_collision 2>&1 | tee /tmp/build-valgrind.log; exit ${PIPESTATUS[0]}
+
+            - name: Valgrind
+              id: valgrind
+              continue-on-error: true
+              run: |
+                  SUPP=""
+                  [ -f /usr/lib/valgrind/default.supp ] && SUPP="--suppressions=/usr/lib/valgrind/default.supp"
+                  valgrind \
+                    --error-exitcode=1 \
+                    --leak-check=full \
+                    --track-origins=yes \
+                    $SUPP \
+                    build-valgrind/test_collision 2>&1 | tee /tmp/valgrind.log; exit ${PIPESTATUS[0]}
+
+            - name: Coverage
+              id: coverage
+              continue-on-error: true
+              run: |
+                  cmake -S . -B build-cov -G Ninja \
+                    -DCMAKE_BUILD_TYPE=Debug \
+                    -DCOVERAGE=ON \
+                    -DCMAKE_PREFIX_PATH=/opt/sdl3 \
+                    -DTILENGINE_DIR=/opt/tilengine
+                  cmake --build build-cov --target coverage 2>&1 | tee /tmp/coverage.log; exit ${PIPESTATUS[0]}
+
+            - name: Summary
+              if: always()
+              run: |
+                  result() { [ "$1" = "success" ] && echo "✅ Pass" || echo "❌ Fail"; }
+
+                  append_filtered_log() {
+                    local label="$1" log="$2"
+                    [ -s "$log" ] || return
+                    local content
+                    content=$(grep -iE "error:|warning:" "$log" 2>/dev/null || true)
+                    [ -z "$content" ] && return
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "### $label" >> $GITHUB_STEP_SUMMARY
+                    echo '```diff' >> $GITHUB_STEP_SUMMARY
+                    while IFS= read -r line; do
+                      if echo "$line" | grep -qE ":[0-9]+:[0-9]+: error:"; then
+                        echo "- $line" >> $GITHUB_STEP_SUMMARY
+                      else
+                        echo "! $line" >> $GITHUB_STEP_SUMMARY
+                      fi
+                    done <<< "$content"
+                    echo '```' >> $GITHUB_STEP_SUMMARY
+                  }
+
+                  echo "## CI Results" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+                  echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Build | $(result ${{ steps.build.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Tests | $(result ${{ steps.tests.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| cppcheck | $(result ${{ steps.cppcheck.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| clang-tidy | $(result ${{ steps.clang_tidy.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Build (Valgrind) | $(result ${{ steps.build_valgrind.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Valgrind | $(result ${{ steps.valgrind.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Coverage | $(result ${{ steps.coverage.outcome }}) |" >> $GITHUB_STEP_SUMMARY
+
+                  append_filtered_log "Build"            /tmp/build.log
+                  append_filtered_log "Tests"            /tmp/tests.log
+                  append_filtered_log "cppcheck"         /tmp/cppcheck.log
+                  append_filtered_log "clang-tidy"       /tmp/clang-tidy.log
+                  append_filtered_log "Build (Valgrind)" /tmp/build-valgrind.log
+                  append_filtered_log "Valgrind"         /tmp/valgrind.log
+                  append_filtered_log "Coverage"         /tmp/coverage.log
+
+            - name: Fail if any check failed
+              if: >
+                  steps.build.outcome != 'success' ||
+                  steps.tests.outcome != 'success' ||
+                  steps.cppcheck.outcome != 'success' ||
+                  steps.clang_tidy.outcome != 'success' ||
+                  steps.build_valgrind.outcome != 'success' ||
+                  steps.valgrind.outcome != 'success' ||
+                  steps.coverage.outcome != 'success'
+              run: exit 1

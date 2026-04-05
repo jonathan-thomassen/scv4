@@ -1,5 +1,5 @@
 /*
- * Drawbridge.c — affine-transform arc animation for the SC4 drawbridge.
+ * Drawbridge.c — affine-transform arc animation for the SCV4 drawbridge.
  *
  */
 
