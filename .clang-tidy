@@ -8,7 +8,7 @@ Checks: >
   performance-*
 
 WarningsAsErrors: ""
-HeaderFilterRegex: "src/.*"
+HeaderFilterRegex: ".*/dev/scv4/src/.*"
 FormatStyle: none
 
 CheckOptions:
