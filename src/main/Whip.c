@@ -100,7 +100,7 @@ void whip_deinit(void) {
   }
 }
 
-bool whip_is_active(void) { return swing_frame < WHIP_DURATION; }
+bool whip_is_active(void) { return (bool)(swing_frame < WHIP_DURATION); }
 
 int whip_get_stage(void) {
   if (!whip_is_active()) {
@@ -110,14 +110,14 @@ int whip_get_stage(void) {
 }
 
 void whip_tasks(void) {
-  bool pressed = (int)TLN_GetInput(INPUT_B) != 0;
+  bool pressed = TLN_GetInput(INPUT_B);
 
   /* Rising-edge trigger: start a new swing only on a fresh press and while
    * no swing is already running. */
   if ((int)pressed && !prev_pressed && !whip_is_active()) {
     swing_frame = 0;
     swing_facing_right = simon_facing_right();
-    swing_up = (int)TLN_GetInput(INPUT_UP) != 0;
+    swing_up = TLN_GetInput(INPUT_UP);
   }
   prev_pressed = pressed;
 
@@ -144,7 +144,7 @@ void whip_tasks(void) {
   }
 }
 
-bool whip_is_up(void) { return ((int)whip_is_active() && (int)swing_up) != 0; }
+bool whip_is_up(void) { return (bool)((int)whip_is_active() && (int)swing_up); }
 
 void whip_render(void) {
   if (!render_pending) {
@@ -166,7 +166,7 @@ void whip_render(void) {
         flip_h = segment->flip_h;
       } else {
         world_x = sprite_x + (SIMON_SPRITE_W - segment->dx - SEG_SIZE);
-        flip_h = ((!segment->flip_h) != 0);
+        flip_h = (bool)(!segment->flip_h);
       }
       TLN_SetSpriteSet(WHIP_SPRITE_BASE + seg, spriteset);
       TLN_SetSpritePicture(WHIP_SPRITE_BASE + seg, segment->pic);

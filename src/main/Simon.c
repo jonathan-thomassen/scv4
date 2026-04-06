@@ -135,7 +135,7 @@ static void render_section_stage(const MapSection* sec, int stage_idx) {
     stage_idx = sec->num_stages - 1;
   }
   const MapStage* stage = &sec->stages[stage_idx];
-  bool facing_right = (direction == DIR_RIGHT);
+  bool facing_right = (bool)(direction == DIR_RIGHT);
   for (int i = 0; i < MAX_SIMON_SPRITES; i++) {
     if (i < stage->count) {
       const MapSeg* seg = &stage->segs[i];
@@ -283,7 +283,7 @@ static bool update_air_throttle(Direction input) {
     /* released in the air — treat next press as a new direction change */
     air_dir = DIR_NONE;
   }
-  bool changing_dir = (state == SIMON_JUMPING && input != DIR_NONE && input != air_dir) != 0;
+  bool changing_dir = (bool)(state == SIMON_JUMPING && input != DIR_NONE && input != air_dir);
   if (changing_dir) {
     dir_change_timer++;
   } else {
@@ -315,7 +315,7 @@ static int execute_move(Direction input, bool changing_dir) {
 static int apply_movement(Direction input) {
   bool changing_dir = update_air_throttle(input);
 
-  bool first_frame = (prev_input == DIR_NONE && input != DIR_NONE) != 0;
+  bool first_frame = (bool)(prev_input == DIR_NONE && input != DIR_NONE);
   prev_input = input;
 
   int displacement_x = 0;
@@ -510,7 +510,7 @@ static bool has_ground_support(void) {
   }
 
   /* Bridge floor override */
-  return bridge_floor != BRIDGE_FLOOR_Y;
+  return (bool)(bridge_floor != BRIDGE_FLOOR_Y);
 }
 
 /* ---------------------------------------------------------------------------
@@ -526,11 +526,11 @@ typedef struct {
 /* Reads gamepad state with whip / crouch suppression rules applied. */
 static SimonInput read_input(void) {
   SimonInput inp = {DIR_NONE, false, false};
-  inp.crouch_held = (int)TLN_GetInput(INPUT_DOWN) != 0;
+  inp.crouch_held = TLN_GetInput(INPUT_DOWN);
 
-  bool whip_airborne = ((int)whip_is_active() && (state == SIMON_JUMPING)) != 0;
+  bool whip_airborne = (bool)((int)whip_is_active() && (state == SIMON_JUMPING));
   bool is_crouching =
-    (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
+    (bool)(state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING);
   if (!whip_is_active() || (int)whip_airborne) {
     if (TLN_GetInput(INPUT_LEFT)) {
       inp.dir = DIR_LEFT;
@@ -638,7 +638,7 @@ void simon_tasks(void) {
     simon_set_state(SIMON_WALKING);
   }
 
-  bool on_ground = (state != SIMON_JUMPING);
+  bool on_ground = (bool)(state != SIMON_JUMPING);
   update_crouch_state(inp.crouch_held, on_ground);
   update_teeter_state(inp.dir);
 
@@ -700,7 +700,7 @@ void simon_set_world_x(int new_world_x) { position.scroll_x = new_world_x; }
 int simon_get_screen_y(void) { return position.y; }
 
 bool simon_is_crouching(void) {
-  return (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) != 0;
+  return (bool)(state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING);
 }
 
-bool simon_facing_right(void) { return direction == DIR_RIGHT; }
+bool simon_facing_right(void) { return (bool)(direction == DIR_RIGHT); }

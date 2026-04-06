@@ -174,7 +174,7 @@ typedef struct {
 static bool process_pause(PauseState* pause_state) {
   const bool* keys = SDL_GetKeyboardState(NULL);
   bool esc_now = keys[SDL_SCANCODE_ESCAPE];
-  if (esc_now && !pause_state->esc_prev) {
+  if ((int)esc_now && !pause_state->esc_prev) {
     pause_state->paused = (bool)!pause_state->paused;
   }
   pause_state->esc_prev = esc_now;
