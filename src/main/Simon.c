@@ -553,7 +553,7 @@ static SimonInput read_input(void) {
  * Frame 1: if INPUT_A already released → short arc (tap).
  * Frame 2: if INPUT_A still held → higher arc (3+ frames); released → tall. */
 static void commit_jump_arc(void) {
-  if (state != SIMON_JUMPING || jump_arc_committed) {
+  if (state != SIMON_JUMPING || (int)jump_arc_committed) {
     return;
   }
   if (jump_frame == 1 && !TLN_GetInput(INPUT_A)) {
@@ -571,7 +571,7 @@ static void commit_jump_arc(void) {
 /* If Simon is on the ground but there is no solid tile, sandblock, or
  * bridge beneath his feet, start falling. */
 static void begin_edge_fall(void) {
-  if (state == SIMON_JUMPING || has_ground_support()) {
+  if (state == SIMON_JUMPING || (int)has_ground_support()) {
     return;
   }
   state = SIMON_JUMPING;
