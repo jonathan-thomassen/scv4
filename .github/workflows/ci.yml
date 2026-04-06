@@ -19,7 +19,7 @@ jobs:
           sudo apt-get install -y \
             cmake ninja-build \
             libpng-dev zlib1g-dev \
-            cppcheck clang-tidy-21 valgrind gcovr \
+            cppcheck clang-tidy valgrind gcovr \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
             libxinerama-dev libxss-dev libxfixes-dev \
             libasound2-dev libpulse-dev libdbus-1-dev
@@ -101,7 +101,7 @@ jobs:
         id: clang_tidy
         continue-on-error: true
         run: |
-          clang-tidy-21 \
+          clang-tidy \
             src/main/Intro.c src/main/Drawbridge.c src/main/Simon.c \
             src/main/SimonCollision.c src/main/Hud.c src/main/Prop.c \
             src/main/Sandblock.c src/main/Torch.c src/main/Profiling.c \
