@@ -1,6 +1,7 @@
 #include "SimonCollision.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "LoadFile.h"
 #include "Simon.h"
@@ -25,6 +26,7 @@
 #define COL_DEF_MAX_N    9
 #define COL_DEF_ROWS     8
 #define COL_DEF_LINE_MAX 64
+#define DECIMAL_BASE     10
 
 static int col_thresh[COL_DEF_MAX_H + 1][COL_DEF_MAX_N + 1][COL_DEF_ROWS];
 
@@ -73,10 +75,17 @@ void load_col_definition(void) {
   while (fgets(line, sizeof(line), file) != NULL) {
     int new_h;
     int new_n;
-    if (sscanf(line, "# %dx%d", &new_h, &new_n) == 2) {
-      cur_h = new_h;
-      cur_n = new_n;
-      cur_row = 0;
+    if (line[0] == '#' && line[1] == ' ') {
+      char* end;
+      new_h = (int)strtol(line + 2, &end, DECIMAL_BASE);
+      if (end != line + 2 && *end == 'x') {
+        new_n = (int)strtol(end + 1, &end, DECIMAL_BASE);
+        if (*end == '\n' || *end == '\r' || *end == '\0') {
+          cur_h = new_h;
+          cur_n = new_n;
+          cur_row = 0;
+        }
+      }
       continue;
     }
     if (cur_h < 1 || cur_h > COL_DEF_MAX_H || cur_n < 1 || cur_n > COL_DEF_MAX_N) {

@@ -10,6 +10,7 @@
 #define MAX_FILENAME_LEN 64
 #define MAX_LINE_LEN     64
 #define MAX_FLAGS_LEN    8
+#define DECIMAL_BASE     10
 
 TLN_Spriteset load_grid_spriteset(const char* base_name, TLN_Bitmap* out_bitmap) {
   char txt_name[MAX_FILENAME_LEN];
@@ -28,13 +29,14 @@ TLN_Spriteset load_grid_spriteset(const char* base_name, TLN_Bitmap* out_bitmap)
 
   char line[MAX_LINE_LEN];
   while (fgets(line, sizeof(line), file) != NULL) {
-    int val;
-    if (sscanf(line, " w = %d", &val) == 1) {
-      tile_width = val;
-    } else if (sscanf(line, " h = %d", &val) == 1) {
-      tile_height = val;
-    } else if (sscanf(line, " cols = %d", &val) == 1) {
-      cols = val;
+    char* tok = line + strspn(line, " \t");
+    char* endptr;
+    if (strncmp(tok, "w = ", sizeof("w = ") - 1) == 0) {
+      tile_width = (int)strtol(tok + sizeof("w = ") - 1, &endptr, DECIMAL_BASE);
+    } else if (strncmp(tok, "h = ", sizeof("h = ") - 1) == 0) {
+      tile_height = (int)strtol(tok + sizeof("h = ") - 1, &endptr, DECIMAL_BASE);
+    } else if (strncmp(tok, "cols = ", sizeof("cols = ") - 1) == 0) {
+      cols = (int)strtol(tok + sizeof("cols = ") - 1, &endptr, DECIMAL_BASE);
     }
   }
   fclose(file);
@@ -76,6 +78,55 @@ TLN_Spriteset load_grid_spriteset(const char* base_name, TLN_Bitmap* out_bitmap)
   return spriteset;
 }
 
+static bool parse_map_seg(const char* line, MapSeg* seg) {
+  char* cur = (char*)line + strspn(line, " \t");
+  char* end;
+  if (*cur != 's') {
+    return false;
+  }
+  int pic = (int)strtol(cur + 1, &end, DECIMAL_BASE);
+  if (end == cur + 1 || pic < 0) {
+    return false;
+  }
+  cur = end + strspn(end, " \t");
+  if (*cur != '=') {
+    return false;
+  }
+  cur++;
+  cur += strspn(cur, " \t");
+  if (*cur != '(') {
+    return false;
+  }
+  cur++;
+  cur += strspn(cur, " \t");
+  int displacement_x = (int)strtol(cur, &end, DECIMAL_BASE);
+  if (end == cur) {
+    return false;
+  }
+  cur = end + strspn(end, " \t");
+  if (*cur != ',') {
+    return false;
+  }
+  cur++;
+  cur += strspn(cur, " \t");
+  int displacement_y = (int)strtol(cur, &end, DECIMAL_BASE);
+  if (end == cur) {
+    return false;
+  }
+  char flags[MAX_FLAGS_LEN] = "";
+  cur = end + strspn(end, " \t");
+  if (*cur == ')') {
+    sscanf(cur + 1, " %7s", flags);
+  }
+
+  seg->pic = pic;
+  seg->dx = displacement_x;
+  seg->dy = displacement_y;
+  seg->flip_h = (strchr(flags, 'h') != NULL);
+  seg->flip_v = (strchr(flags, 'v') != NULL);
+  return true;
+}
+
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void load_map_section(const char* filename, const char* section, int max_stages, int max_segs, MapSection* out) {
   out->num_stages = 0;
@@ -103,9 +154,11 @@ void load_map_section(const char* filename, const char* section, int max_stages,
       continue;
     }
 
-    int idx = -1;
-    if (sscanf(line, " %d :", &idx) == 1 && idx >= 0 && idx < max_stages) {
-      cur_stage = idx;
+    char* ptr = line + strspn(line, " \t");
+    char* endptr;
+    long raw_idx = strtol(ptr, &endptr, DECIMAL_BASE);
+    if (endptr != ptr && *(endptr + strspn(endptr, " \t")) == ':' && raw_idx >= 0 && raw_idx < max_stages) {
+      cur_stage = (int)raw_idx;
       if (cur_stage + 1 > out->num_stages) {
         out->num_stages = cur_stage + 1;
       }
@@ -116,22 +169,10 @@ void load_map_section(const char* filename, const char* section, int max_stages,
       continue;
     }
 
-    int pic = -1;
-    int displacement_x = 0;
-    int displacement_y = 0;
-    char flags[MAX_FLAGS_LEN] = "";
-
-    int matched = sscanf(line, " s%d = ( %d , %d ) %7s", &pic, &displacement_x, &displacement_y, flags);
-    if (matched < 3 || pic < 0) {
-      continue;
+    MapSeg* seg = &out->stages[cur_stage].segs[out->stages[cur_stage].count];
+    if (parse_map_seg(line, seg)) {
+      out->stages[cur_stage].count++;
     }
-
-    MapSeg* seg = &out->stages[cur_stage].segs[out->stages[cur_stage].count++];
-    seg->pic = pic;
-    seg->dx = displacement_x;
-    seg->dy = displacement_y;
-    seg->flip_h = (strchr(flags, 'h') != NULL);
-    seg->flip_v = (strchr(flags, 'v') != NULL);
   }
   fclose(file);
 }

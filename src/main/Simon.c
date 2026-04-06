@@ -86,7 +86,7 @@ typedef enum {
 static TLN_Spriteset simon;
 static TLN_Bitmap simon_bmp;
 static MapSection sec_stand, sec_walk, sec_jump, sec_teeter, sec_crouch, sec_crouch_walk, sec_whip, sec_whip_jump,
-  sec_crouch_whip, sec_whip_up, sec_whip_jump_up;
+  sec_crouch_whip, sec_whip_up, sec_whip_jump_up, sec_whip_jump_down;
 static int walk_anim_frame;
 
 static Coords2d position;
@@ -175,7 +175,13 @@ static void render_current_state(void) {
   int stage = 0;
   if (whip_is_active()) {
     if (state == SIMON_JUMPING) {
-      sec = (int)whip_is_up() ? &sec_whip_jump_up : &sec_whip_jump;
+      if (whip_is_up()) {
+        sec = &sec_whip_jump_up;
+      } else if (whip_is_down()) {
+        sec = &sec_whip_jump_down;
+      } else {
+        sec = &sec_whip_jump;
+      }
     } else if (state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING) {
       sec = &sec_crouch_whip;
     } else if (whip_is_up()) {
@@ -229,6 +235,7 @@ void simon_init(void) {
   load_map_section("simon_map.txt", "crouch-whip", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_crouch_whip);
   load_map_section("simon_map.txt", "whip-up", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_up);
   load_map_section("simon_map.txt", "jump-whip-up", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_jump_up);
+  load_map_section("simon_map.txt", "jump-whip-down", SIMON_MAX_STAGES, SIMON_MAX_SEGS, &sec_whip_jump_down);
 
   layer_width = TLN_GetLayerWidth(1);
   state = SIMON_IDLE;
@@ -549,15 +556,13 @@ static SimonInput read_input(void) {
   inp.crouch_held = TLN_GetInput(INPUT_DOWN);
 
   bool whip_airborne = (bool)((int)whip_is_active() && (state == SIMON_JUMPING));
-  bool is_crouching =
-    (bool)(state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING);
   if (!whip_is_active() || (int)whip_airborne) {
     if (TLN_GetInput(INPUT_LEFT)) {
       inp.dir = DIR_LEFT;
     } else if (TLN_GetInput(INPUT_RIGHT)) {
       inp.dir = DIR_RIGHT;
     }
-    if (!whip_is_active() && !is_crouching && (int)TLN_GetInput(INPUT_A)) {
+    if (!whip_is_active() && (int)TLN_GetInput(INPUT_A)) {
       inp.jump = true;
     }
   }
@@ -723,6 +728,8 @@ int simon_get_screen_y(void) { return position.y; }
 bool simon_is_crouching(void) {
   return (bool)(state == SIMON_CROUCHING || state == SIMON_CROUCH_WALKING || state == SIMON_CROUCH_WHIPPING);
 }
+
+bool simon_is_jumping(void) { return (bool)(state == SIMON_JUMPING); }
 
 bool simon_facing_right(void) { return (bool)(direction == DIR_RIGHT); }
 

@@ -193,13 +193,14 @@ typedef struct {
   SDL_Keymod zero_mod;
 } FpsAdjustState;
 
-static const int fps_steps[] = {1, 2, 3, 5, 10, 15, 30, 60, 120, 240, 480, 960};
+static const int fps_steps[] = {1, 2, 3, 5, 10, 15, 30, 60, 120, 180, 240, 300, 600, 1200, 3000, 6000};
 #define FPS_STEP_COUNT (int)(sizeof(fps_steps) / sizeof(fps_steps[0]))
 
 /* Returns true if a layout-mapped key is currently pressed,
  * accounting for any required modifier (e.g. Shift). */
-static bool key_pressed(const bool* keys, SDL_Scancode sc, SDL_Keymod required_mod) {
-  if (!keys[sc]) {
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+static bool key_pressed(const bool* keys, SDL_Scancode scancode, SDL_Keymod required_mod) {
+  if (!keys[scancode]) {
     return false;
   }
   if (required_mod == SDL_KMOD_NONE) {
@@ -213,8 +214,11 @@ static bool key_pressed(const bool* keys, SDL_Scancode sc, SDL_Keymod required_m
  * physical keys are detected regardless of keyboard layout. */
 static void process_fps_adjust(FpsAdjustState* state) {
   const bool* keys = SDL_GetKeyboardState(NULL);
-  bool plus_now = key_pressed(keys, state->plus_sc, state->plus_mod) || keys[SDL_SCANCODE_KP_PLUS];
-  bool minus_now = key_pressed(keys, state->minus_sc, state->minus_mod) || keys[SDL_SCANCODE_KP_MINUS];
+  bool ctrl_held = (SDL_GetModState() & SDL_KMOD_CTRL) != 0;
+  bool plus_now =
+    (!ctrl_held && (key_pressed(keys, state->plus_sc, state->plus_mod) || keys[SDL_SCANCODE_KP_PLUS])) != 0;
+  bool minus_now =
+    (!ctrl_held && (key_pressed(keys, state->minus_sc, state->minus_mod) || keys[SDL_SCANCODE_KP_MINUS])) != 0;
   if ((int)plus_now && !state->plus_prev) {
     int cur = TLN_GetTargetFps();
     for (int i = 0; i < FPS_STEP_COUNT; i++) {
@@ -235,7 +239,7 @@ static void process_fps_adjust(FpsAdjustState* state) {
   }
   state->plus_prev = plus_now;
   state->minus_prev = minus_now;
-  bool zero_now = key_pressed(keys, state->zero_sc, state->zero_mod) || keys[SDL_SCANCODE_KP_0];
+  bool zero_now = (!ctrl_held && (key_pressed(keys, state->zero_sc, state->zero_mod) || keys[SDL_SCANCODE_KP_0])) != 0;
   if ((int)zero_now && !state->zero_prev) {
     TLN_SetTargetFps(TARGET_FPS);
   }
@@ -360,7 +364,7 @@ int main(int argc, const char* argv[]) {
   TLN_SetLayerBlendMode(MAIN_LAYER, BLEND_MIX50);
 
   /* main loop */
-  TLN_CreateWindow(CWF_NEAREST | CWF_S8 | CWF_NOVSYNC);
+  TLN_CreateWindow(CWF_NEAREST | CWF_S5 | CWF_NOVSYNC);
   TLN_DefineInputKey(PLAYER1, INPUT_UP, SDLK_W);
   TLN_DefineInputKey(PLAYER1, INPUT_LEFT, SDLK_A);
   TLN_DefineInputKey(PLAYER1, INPUT_RIGHT, SDLK_D);
@@ -373,7 +377,7 @@ int main(int argc, const char* argv[]) {
   Uint64 fps_t0 = SDL_GetTicks();
   int fps_frames = 0;
   PauseState pause_state = {false, false};
-  FpsAdjustState fps_adjust = {0};
+  FpsAdjustState fps_adjust = {.plus_prev = false};
   fps_adjust.plus_sc = SDL_GetScancodeFromKey(SDLK_PLUS, &fps_adjust.plus_mod);
   fps_adjust.minus_sc = SDL_GetScancodeFromKey(SDLK_MINUS, &fps_adjust.minus_mod);
   fps_adjust.zero_sc = SDL_GetScancodeFromKey(SDLK_0, &fps_adjust.zero_mod);
@@ -493,6 +497,7 @@ int main(int argc, const char* argv[]) {
     }
   }
 
+  TLN_DeleteWindow();
   prop_deinit();
   torch_deinit();
   sandblock_deinit();

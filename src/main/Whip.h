@@ -14,7 +14,7 @@
 #define WHIP_SPRITE_BASE (1 + MAX_SANDBLOCKS + MAX_TORCHES + MAX_PROPS + MAX_SIMON_SPRITES)
 
 /** Total duration of a whip swing, in game frames. */
-#define WHIP_DURATION    18
+#define WHIP_DURATION    23
 
 /**
  * Loads the whip0 spriteset and clears the sprite slot.
@@ -43,6 +43,12 @@ int whip_get_stage(void);
  * with INPUT_UP held — i.e. Simon is whipping upward.
  */
 bool whip_is_up(void);
+
+/**
+ * Returns true if the current swing was triggered with INPUT_DOWN held while
+ * airborne — i.e. Simon is whipping downward.
+ */
+bool whip_is_down(void);
 
 /**
  * Polls INPUT_B (keyboard X) to start a swing, then advances the frame

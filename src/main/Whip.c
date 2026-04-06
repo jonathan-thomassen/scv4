@@ -11,6 +11,7 @@
 #define SIMON_SPRITE_W 32 /* width of Simon's sprite in pixels             */
 #define CROUCH_Y_OFF   12 /* vertical offset when Simon is crouching       */
 #define NUM_STAGES     3  /* number of whip animation stages               */
+#define WHIP_LINGER    1  /* extra frames whip sprites stay after Simon reverts */
 
 /*
  * Number of frames each animation stage is shown.
@@ -41,8 +42,9 @@ static int frame_to_stage(int frame) {
   return NUM_STAGES - 1;
 }
 
-static MapSection stages;    /* horizontal swing (# main) */
-static MapSection up_stages; /* upward swing    (# up)   */
+static MapSection stages;      /* horizontal swing (# main) */
+static MapSection up_stages;   /* upward swing    (# up)   */
+static MapSection down_stages; /* downward swing  (# down) */
 
 static TLN_Spriteset spriteset;
 static TLN_Bitmap spriteset_bmp;
@@ -61,11 +63,18 @@ static bool swing_facing_right;
 /* True when the current swing was triggered with INPUT_UP held. */
 static bool swing_up;
 
+/* True when the current swing was triggered with INPUT_DOWN held while airborne. */
+static bool swing_down;
+
 /* Edge-detect state: prevents re-triggering while INPUT_B is held. */
 static bool prev_pressed;
 
 /* True on frames where visible whip sprites should be placed by WhipRender(). */
 static bool render_pending;
+
+/* Linger countdown: whip sprites stay visible this many extra frames after
+ * the swing ends so the final whip frame outlasts Simon's whip pose. */
+static int linger_count;
 
 static void disable_all_segments(void) {
   for (int i = 0; i < MAX_WHIP_SPRITES; i++) {
@@ -77,12 +86,15 @@ void whip_init(void) {
   spriteset = load_grid_spriteset("whip0", &spriteset_bmp);
   swing_frame = WHIP_DURATION; /* inactive */
   swing_up = false;
+  swing_down = false;
   prev_pressed = false;
+  linger_count = 0;
   disable_all_segments();
 
   /* Load both swing directions from a single file. */
   load_map_section("whip0_map.txt", "main", NUM_STAGES, MAX_WHIP_SPRITES, &stages);
   load_map_section("whip0_map.txt", "up", NUM_STAGES, MAX_WHIP_SPRITES, &up_stages);
+  load_map_section("whip0_map.txt", "down", NUM_STAGES, MAX_WHIP_SPRITES, &down_stages);
 }
 
 void whip_deinit(void) {
@@ -113,15 +125,28 @@ void whip_tasks(void) {
   bool pressed = TLN_GetInput(INPUT_B);
 
   /* Rising-edge trigger: start a new swing only on a fresh press and while
-   * no swing is already running. */
-  if ((int)pressed && !prev_pressed && !whip_is_active()) {
+   * no swing is already running (including the linger tail). */
+  if ((int)pressed && !prev_pressed && !whip_is_active() && linger_count == 0) {
     swing_frame = 0;
     swing_facing_right = simon_facing_right();
     swing_up = TLN_GetInput(INPUT_UP);
+    swing_down = (bool)(!swing_up && (int)TLN_GetInput(INPUT_DOWN) && (int)simon_is_jumping());
   }
   prev_pressed = pressed;
 
   render_pending = false;
+
+  /* Linger phase: whip sprites stay visible while Simon has already reverted
+   * to his standing animation. */
+  if (linger_count > 0) {
+    linger_count--;
+    if (linger_count > 0) {
+      render_pending = true;
+    } else {
+      disable_all_segments();
+    }
+    return;
+  }
 
   if (!whip_is_active()) {
     return;
@@ -137,14 +162,16 @@ void whip_tasks(void) {
 
   swing_frame++;
 
-  /* Animation complete — ensure all segments are disabled. */
+  /* Animation complete — begin linger so the final whip frame stays visible
+   * one frame past the point where Simon returns to his standing pose. */
   if (swing_frame >= WHIP_DURATION) {
-    render_pending = false;
-    disable_all_segments();
+    linger_count = WHIP_LINGER;
   }
 }
 
 bool whip_is_up(void) { return (bool)((int)whip_is_active() && (int)swing_up); }
+
+bool whip_is_down(void) { return (bool)((int)whip_is_active() && (int)swing_down); }
 
 void whip_render(void) {
   if (!render_pending) {
@@ -153,7 +180,14 @@ void whip_render(void) {
   int stage = last_rendered_stage;
   int sprite_x = simon_get_screen_x();
   int sprite_y = simon_get_screen_y();
-  const MapSection* active_section = (int)swing_up ? &up_stages : &stages;
+  const MapSection* active_section;
+  if (swing_up) {
+    active_section = &up_stages;
+  } else if (swing_down) {
+    active_section = &down_stages;
+  } else {
+    active_section = &stages;
+  }
   int count = active_section->stages[stage].count;
 
   for (int seg = 0; seg < MAX_WHIP_SPRITES; seg++) {

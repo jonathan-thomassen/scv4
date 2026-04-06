@@ -82,6 +82,9 @@ bool simon_facing_right(void);
 /** Returns true if Simon is in any crouching state. */
 bool simon_is_crouching(void);
 
+/** Returns true if Simon is airborne (jumping/falling). */
+bool simon_is_jumping(void);
+
 /**
  * Sets a bridge-surface floor override used by SimonTasks() physics.
  * While active, the tile-based floor check is replaced by a hard clamp at
