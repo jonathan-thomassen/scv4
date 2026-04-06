@@ -185,16 +185,36 @@ typedef struct {
   bool plus_prev;
   bool minus_prev;
   bool zero_prev;
+  SDL_Scancode plus_sc;
+  SDL_Keymod plus_mod;
+  SDL_Scancode minus_sc;
+  SDL_Keymod minus_mod;
+  SDL_Scancode zero_sc;
+  SDL_Keymod zero_mod;
 } FpsAdjustState;
 
 static const int fps_steps[] = {1, 2, 3, 5, 10, 15, 30, 60, 120, 240, 480, 960};
 #define FPS_STEP_COUNT (int)(sizeof(fps_steps) / sizeof(fps_steps[0]))
 
-/* Adjusts the target framerate with +/- keys (including numpad). */
+/* Returns true if a layout-mapped key is currently pressed,
+ * accounting for any required modifier (e.g. Shift). */
+static bool key_pressed(const bool* keys, SDL_Scancode sc, SDL_Keymod required_mod) {
+  if (!keys[sc]) {
+    return false;
+  }
+  if (required_mod == SDL_KMOD_NONE) {
+    return true;
+  }
+  return (SDL_GetModState() & required_mod) != 0;
+}
+
+/* Adjusts the target framerate with +/- keys (including numpad).
+ * Uses layout-aware scancodes resolved at init time so the correct
+ * physical keys are detected regardless of keyboard layout. */
 static void process_fps_adjust(FpsAdjustState* state) {
   const bool* keys = SDL_GetKeyboardState(NULL);
-  bool plus_now = (keys[SDL_SCANCODE_EQUALS] || keys[SDL_SCANCODE_KP_PLUS]) != 0;
-  bool minus_now = (keys[SDL_SCANCODE_MINUS] || keys[SDL_SCANCODE_KP_MINUS]) != 0;
+  bool plus_now = key_pressed(keys, state->plus_sc, state->plus_mod) || keys[SDL_SCANCODE_KP_PLUS];
+  bool minus_now = key_pressed(keys, state->minus_sc, state->minus_mod) || keys[SDL_SCANCODE_KP_MINUS];
   if ((int)plus_now && !state->plus_prev) {
     int cur = TLN_GetTargetFps();
     for (int i = 0; i < FPS_STEP_COUNT; i++) {
@@ -215,7 +235,7 @@ static void process_fps_adjust(FpsAdjustState* state) {
   }
   state->plus_prev = plus_now;
   state->minus_prev = minus_now;
-  bool zero_now = (keys[SDL_SCANCODE_0] || keys[SDL_SCANCODE_KP_0]) != 0;
+  bool zero_now = key_pressed(keys, state->zero_sc, state->zero_mod) || keys[SDL_SCANCODE_KP_0];
   if ((int)zero_now && !state->zero_prev) {
     TLN_SetTargetFps(TARGET_FPS);
   }
@@ -353,7 +373,10 @@ int main(int argc, const char* argv[]) {
   Uint64 fps_t0 = SDL_GetTicks();
   int fps_frames = 0;
   PauseState pause_state = {false, false};
-  FpsAdjustState fps_adjust = {false, false, false};
+  FpsAdjustState fps_adjust = {0};
+  fps_adjust.plus_sc = SDL_GetScancodeFromKey(SDLK_PLUS, &fps_adjust.plus_mod);
+  fps_adjust.minus_sc = SDL_GetScancodeFromKey(SDLK_MINUS, &fps_adjust.minus_mod);
+  fps_adjust.zero_sc = SDL_GetScancodeFromKey(SDLK_0, &fps_adjust.zero_mod);
   RailsState rails = {false, 0, 0};
   int xpos = 0;
   bool db_triggered = false;
