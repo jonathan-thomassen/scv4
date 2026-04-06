@@ -75,10 +75,10 @@ void load_col_definition(void) {
   while (fgets(line, sizeof(line), file) != NULL) {
     if (line[0] == '#' && line[1] == ' ') {
       int new_h;
-      int new_n;
       char* end;
       new_h = (int)strtol(line + 2, &end, DECIMAL_BASE);
       if (end != line + 2 && *end == 'x') {
+        int new_n;
         new_n = (int)strtol(end + 1, &end, DECIMAL_BASE);
         if (*end == '\n' || *end == '\r' || *end == '\0') {
           cur_h = new_h;
