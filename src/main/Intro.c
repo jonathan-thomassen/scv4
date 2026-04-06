@@ -1,8 +1,10 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
+#include <stdlib.h>
+#endif
 
 #include "Drawbridge.h"
 #include "Hud.h"
@@ -244,8 +246,10 @@ static void update_bridge_floor(bool db_triggered, int db_floor_offset) {
 
 /* entry point */
 int main(int argc, const char* argv[]) {
+#ifndef _WIN32
   setenv("SDL_VIDEODRIVER", "x11", 1);
   setenv("GDK_DPI_SCALE", "1", 1);
+#endif
 
   TLN_Tilemap collision;
   TLN_Tilemap drawbridge_bg;
