@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROFILING_H
+#define PROFILING_H
 
 #include <SDL3/SDL_timer.h>
 
@@ -21,7 +22,9 @@ typedef struct {
   Uint64 report_t;
 } ProfState;
 
-void prof_init(ProfState* p);
-void prof_frame_begin(ProfState* p);
-void prof_logic_end(ProfState* p);
-void prof_frame_end(ProfState* p, int xpos);
+void prof_init(ProfState* prof);
+void prof_frame_begin(ProfState* prof);
+void prof_logic_end(ProfState* prof);
+void prof_frame_end(ProfState* prof, int xpos);
+
+#endif

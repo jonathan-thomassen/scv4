@@ -9,6 +9,7 @@
 
 #define SEG_SIZE       8  /* each subsprite is 8x8 px                     */
 #define SIMON_SPRITE_W 32 /* width of Simon's sprite in pixels             */
+#define CROUCH_Y_OFF   12 /* vertical offset when Simon is crouching       */
 #define NUM_STAGES     3  /* number of whip animation stages               */
 
 /*
@@ -171,7 +172,7 @@ void whip_render(void) {
       TLN_SetSpritePicture(WHIP_SPRITE_BASE + seg, segment->pic);
       TLN_EnableSpriteFlag(WHIP_SPRITE_BASE + seg, FLAG_FLIPX, flip_h);
       TLN_EnableSpriteFlag(WHIP_SPRITE_BASE + seg, FLAG_FLIPY, segment->flip_v);
-      int y_offset = (int)simon_is_crouching() ? 12 : 0;
+      int y_offset = (int)simon_is_crouching() ? CROUCH_Y_OFF : 0;
       TLN_SetSpritePosition(WHIP_SPRITE_BASE + seg, world_x, sprite_y + segment->dy + y_offset);
     } else {
       TLN_DisableSprite(WHIP_SPRITE_BASE + seg);

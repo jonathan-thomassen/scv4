@@ -5,7 +5,7 @@
         "--compile-commands-dir=${workspaceFolder}/build"
     ],
     "cmake.configureArgs": [
-        "-DTILENGINE_DIR=C:/Users/jonat/dev/Tilengine"
+        "-DTILENGINE_DIR=${env:HOME}/dev/Tilengine"
     ],
     "files.exclude": {
         "build/**": true,

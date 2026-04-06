@@ -20,21 +20,46 @@
  *   col_idisplacement_x  0..8  — equals displacement_x (column 0 = probe's current x, column
  * displacement_x = destination)
  * ------------------------------------------------------------------------- */
-#define COL_THRESH_NONE 9
-#define COL_DEF_MAX_H   8
-#define COL_DEF_MAX_N   9
-#define COL_DEF_ROWS    8
+#define COL_THRESH_NONE  9
+#define COL_DEF_MAX_H    8
+#define COL_DEF_MAX_N    9
+#define COL_DEF_ROWS     8
+#define COL_DEF_LINE_MAX 64
 
 static int col_thresh[COL_DEF_MAX_H + 1][COL_DEF_MAX_N + 1][COL_DEF_ROWS];
 
-void load_col_definition(void) {
-  for (int h = 0; h <= COL_DEF_MAX_H; h++) {
-    for (int n = 0; n <= COL_DEF_MAX_N; n++) {
+static void init_col_thresh(void) {
+  for (int hi = 0; hi <= COL_DEF_MAX_H; hi++) {
+    for (int ni = 0; ni <= COL_DEF_MAX_N; ni++) {
       for (int row = 0; row < COL_DEF_ROWS; row++) {
-        col_thresh[h][n][row] = COL_THRESH_NONE;
+        col_thresh[hi][ni][row] = COL_THRESH_NONE;
       }
     }
   }
+}
+
+static int parse_thresh_from_line(const char* line) {
+  int thresh = COL_THRESH_NONE;
+  const char* pos = line;
+  for (int col = 0; col < COL_THRESH_NONE && thresh == COL_THRESH_NONE; col++) {
+    while (*pos == ' ') {
+      pos++;
+    }
+    if (*pos == 'V') {
+      thresh = col;
+    }
+    while (*pos && *pos != ',') {
+      pos++;
+    }
+    if (*pos == ',') {
+      pos++;
+    }
+  }
+  return thresh;
+}
+
+void load_col_definition(void) {
+  init_col_thresh();
 
   FILE* file = FileOpen("col_definition");
   if (file == NULL) {
@@ -44,13 +69,13 @@ void load_col_definition(void) {
   int cur_h = 0;
   int cur_n = 0;
   int cur_row = 0;
-  char line[64];
+  char line[COL_DEF_LINE_MAX];
   while (fgets(line, sizeof(line), file) != NULL) {
-    int h;
-    int n;
-    if (sscanf(line, "# %dx%d", &h, &n) == 2) {
-      cur_h = h;
-      cur_n = n;
+    int new_h;
+    int new_n;
+    if (sscanf(line, "# %dx%d", &new_h, &new_n) == 2) {
+      cur_h = new_h;
+      cur_n = new_n;
       cur_row = 0;
       continue;
     }
@@ -67,23 +92,7 @@ void load_col_definition(void) {
       continue;
     }
 
-    int thresh = COL_THRESH_NONE;
-    char* p = line;
-    for (int col = 0; col < 9 && thresh == COL_THRESH_NONE; col++) {
-      while (*p == ' ') {
-        p++;
-      }
-      if (*p == 'V') {
-        thresh = col;
-      }
-      while (*p && *p != ',') {
-        p++;
-      }
-      if (*p == ',') {
-        p++;
-      }
-    }
-    col_thresh[cur_h][cur_n][cur_row] = thresh;
+    col_thresh[cur_h][cur_n][cur_row] = parse_thresh_from_line(line);
     cur_row++;
   }
   fclose(file);
@@ -108,7 +117,7 @@ void load_col_definition(void) {
  * To query the transformed grid the displacement is brought back to the
  * original frame via T_inv = Rotate_inv ∘ Mirror, and lookups use the same
  * col_thresh table.  When the destination is invalid the clamped vector is
- * transformed back into the caller's frame before being written to *displacement_x /
+ * transformed back into the caller's frame before being written to *displacement_x /S
  * *displacement_y.
  *
  * A single CW rotation step maps (u,v) → (−v, u) in screen coordinates.
@@ -116,9 +125,10 @@ void load_col_definition(void) {
  * H, N: grid selector (same semantics as col_definition_lookup, interpreted
  * in the rotated frame).
  */
-static void col_definition_lookup(int h, int n, int rotations, bool mirror_h, bool mirror_v, int* displacement_x,
-                                  int* displacement_y) {
-  if (h < 1 || h > COL_DEF_MAX_H || n < 1 || n > COL_DEF_MAX_N) {
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+static void col_definition_lookup(int grid_h, int grid_n, int rotations, bool mirror_h, bool mirror_v,
+                                  int* displacement_x, int* displacement_y) {
+  if (grid_h < 1 || grid_h > COL_DEF_MAX_H || grid_n < 1 || grid_n > COL_DEF_MAX_N) {
     return;
   }
 
@@ -151,14 +161,14 @@ static void col_definition_lookup(int h, int n, int rotations, bool mirror_h, bo
     return;
   }
 
-  if (velocity_x >= col_thresh[h][n][row_idisplacement_x]) {
+  if (velocity_x >= col_thresh[grid_h][grid_n][row_idisplacement_x]) {
     return; /* V cell — valid, no change */
   }
 
   /* Invalid: clamp orig_displacement_y to H-8, keeping orig_displacement_x.
    * Then apply the forward transform T = Mirror ∘ Rotate to write back. */
   int clamped_velocity_x = velocity_x;
-  int clamped_velocity_y = h - MAX_VELOCITY;
+  int clamped_velocity_y = grid_h - MAX_VELOCITY;
 
   for (int i = 0; i < (rotations % 4); i++) { /* one CW step */
     int tmp = clamped_velocity_x;
@@ -180,16 +190,23 @@ static void col_definition_lookup(int h, int n, int rotations, bool mirror_h, bo
  * Probing
  * ------------------------------------------------------------------------- */
 
+static int probe_row_y(int sprite_y, int row) {
+  if (row == 0) {
+    return SIMON_COL_TOP_Y(sprite_y);
+  }
+  if (row == 3) {
+    return SIMON_COL_BOTTOM_Y(sprite_y);
+  }
+  return SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * row);
+}
+
 static void move_left_probes(int world_x, int sprite_x, int sprite_y, int* displacement_x, bool (*probes)[4]) {
   for (int row = 0; row < 4; row++) {
     if (probes[0][row]) {
       continue;
     }
     TLN_TileInfo h_tile;
-    TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x,
-                     row == 0   ? SIMON_COL_TOP_Y(sprite_y)
-                     : row == 3 ? SIMON_COL_BOTTOM_Y(sprite_y)
-                                : SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * row),
+    TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_LEFT_X(world_x, sprite_x) + *displacement_x, probe_row_y(sprite_y, row),
                      &h_tile);
 
     if (!h_tile.empty) {
@@ -206,10 +223,7 @@ static void move_right_probes(int world_x, int sprite_x, int sprite_y, int* disp
     }
     TLN_TileInfo h_tile;
     TLN_GetLayerTile(COLLISION_LAYER, SIMON_COL_RIGHT_X(world_x, sprite_x) + *displacement_x,
-                     row == 0   ? SIMON_COL_TOP_Y(sprite_y)
-                     : row == 3 ? SIMON_COL_BOTTOM_Y(sprite_y)
-                                : SIMON_COL_TOP_Y(sprite_y) + (BLOCK_SIZE * row),
-                     &h_tile);
+                     probe_row_y(sprite_y, row), &h_tile);
 
     if (!h_tile.empty) {
       *displacement_x -= h_tile.xoffset;
@@ -463,10 +477,10 @@ static void move_up_right_probe_up_left(int world_x, int sprite_x, int sprite_y,
     if (v_tile.empty) {
       return;
     }
-    int h = MAX_VELOCITY - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
-    int n = v_tile.xoffset - (SIMON_COL_LEFT_X(world_x, sprite_x));
+    int grid_h = MAX_VELOCITY - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
+    int grid_n = v_tile.xoffset - (SIMON_COL_LEFT_X(world_x, sprite_x));
 
-    col_definition_lookup(h, n, 0, false, false, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 0, false, false, displacement_x, displacement_y);
     return;
   }
   *displacement_y += TILE_SIZE - hv_tile.yoffset;
@@ -485,10 +499,10 @@ static void move_up_left_probe_up_right(int world_x, int sprite_x, int sprite_y,
     if (v_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
-    int n = v_tile.xoffset - (SIMON_COL_RIGHT_X(world_x, sprite_x));
+    int grid_h = TILE_SIZE - (SIMON_COL_TOP_Y(sprite_y) - (v_tile.yoffset + BLOCK_SIZE));
+    int grid_n = v_tile.xoffset - (SIMON_COL_RIGHT_X(world_x, sprite_x));
 
-    col_definition_lookup(h, n, 0, true, false, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 0, true, false, displacement_x, displacement_y);
     return;
   }
   *displacement_y += TILE_SIZE - hv_tile.yoffset;
@@ -507,10 +521,10 @@ static void move_up_right_probe_down_right(int world_x, int sprite_x, int sprite
     if (h_tile.empty) {
       return;
     }
-    int h = MAX_VELOCITY - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
+    int grid_h = MAX_VELOCITY - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
+    int grid_n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
 
-    col_definition_lookup(h, n, 1, false, true, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 1, false, true, displacement_x, displacement_y);
     return;
   }
   *displacement_x -= hv_tile.xoffset;
@@ -577,10 +591,10 @@ static void move_up_left_probe_down_left(int world_x, int sprite_x, int sprite_y
     if (h_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
+    int grid_h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
+    int grid_n = h_tile.yoffset - SIMON_COL_TOP_Y(sprite_y);
 
-    col_definition_lookup(h, n, 1, true, true, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 1, true, true, displacement_x, displacement_y);
     return;
   }
   *displacement_x += TILE_SIZE - hv_tile.xoffset;
@@ -599,10 +613,10 @@ static void move_down_right_probe_down_left(int world_x, int sprite_x, int sprit
     if (v_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - ((SIMON_COL_BOTTOM_Y(sprite_y)) - v_tile.yoffset);
-    int n = v_tile.xoffset - (SIMON_COL_LEFT_X(world_x, sprite_x));
+    int grid_h = TILE_SIZE - ((SIMON_COL_BOTTOM_Y(sprite_y)) - v_tile.yoffset);
+    int grid_n = v_tile.xoffset - (SIMON_COL_LEFT_X(world_x, sprite_x));
 
-    col_definition_lookup(h, n, 0, false, true, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 0, false, true, displacement_x, displacement_y);
     return;
   }
   *displacement_y -= hv_tile.yoffset + 1;
@@ -621,10 +635,10 @@ static void move_down_right_probe_up_right(int world_x, int sprite_x, int sprite
     if (h_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
+    int grid_h = TILE_SIZE - (SIMON_COL_RIGHT_X(world_x, sprite_x) - h_tile.xoffset);
+    int grid_n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
 
-    col_definition_lookup(h, n, 1, false, false, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 1, false, false, displacement_x, displacement_y);
     return;
   }
   *displacement_x -= hv_tile.xoffset;
@@ -643,10 +657,10 @@ static void move_down_left_probe_down_right(int world_x, int sprite_x, int sprit
     if (v_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - ((SIMON_COL_BOTTOM_Y(sprite_y)) - v_tile.yoffset);
-    int n = v_tile.xoffset - (SIMON_COL_RIGHT_X(world_x, sprite_x));
+    int grid_h = TILE_SIZE - ((SIMON_COL_BOTTOM_Y(sprite_y)) - v_tile.yoffset);
+    int grid_n = v_tile.xoffset - (SIMON_COL_RIGHT_X(world_x, sprite_x));
 
-    col_definition_lookup(h, n, 0, true, true, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 0, true, true, displacement_x, displacement_y);
     return;
   }
   *displacement_y -= hv_tile.yoffset + 1;
@@ -665,10 +679,10 @@ static void move_down_left_probe_up_left(int world_x, int sprite_x, int sprite_y
     if (h_tile.empty) {
       return;
     }
-    int h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
-    int n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
+    int grid_h = TILE_SIZE - (SIMON_COL_LEFT_X(world_x, sprite_x) - h_tile.xoffset);
+    int grid_n = h_tile.yoffset + BLOCK_SIZE - SIMON_COL_TOP_Y(sprite_y);
 
-    col_definition_lookup(h, n, 1, true, false, displacement_x, displacement_y);
+    col_definition_lookup(grid_h, grid_n, 1, true, false, displacement_x, displacement_y);
     return;
   }
   *displacement_x += TILE_SIZE - hv_tile.xoffset;

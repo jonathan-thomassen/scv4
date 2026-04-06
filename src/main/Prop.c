@@ -16,9 +16,11 @@
  * permanently deactivated; chosen to exceed the widest possible prop sprite. */
 #define OFFSCREEN_CULL_MARGIN 64
 
+#define PROP_NAME_MAX         32
+
 /* A loaded spriteset shared by all props of the same name. */
 typedef struct {
-  char name[32];
+  char name[PROP_NAME_MAX];
   TLN_Spriteset ss;
   TLN_SequencePack sp; /* NULL if no matching .sqx file exists */
 } PropType;
@@ -52,7 +54,7 @@ static int find_or_load_type(const char* name) {
   }
   types[num_types].ss = spriteset;
   /* Try to load a same-named sequence pack; silently skip if absent. */
-  char sqx_name[36];
+  char sqx_name[PROP_NAME_MAX + 4];
   snprintf(sqx_name, sizeof(sqx_name), "%s.sqx", name);
   types[num_types].sp = TLN_LoadSequencePack(sqx_name);
   strncpy(types[num_types].name, name, sizeof(types[num_types].name) - 1);
