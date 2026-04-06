@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - run: git config --global init.defaultBranch main
+
       - uses: actions/checkout@v5
 
       - name: Install system dependencies
