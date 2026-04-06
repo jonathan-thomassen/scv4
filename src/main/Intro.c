@@ -181,6 +181,47 @@ static bool process_pause(PauseState* pause_state) {
   return pause_state->paused;
 }
 
+typedef struct {
+  bool plus_prev;
+  bool minus_prev;
+  bool zero_prev;
+} FpsAdjustState;
+
+static const int fps_steps[] = {1, 2, 3, 5, 10, 15, 30, 60, 120, 240, 480, 960};
+#define FPS_STEP_COUNT (int)(sizeof(fps_steps) / sizeof(fps_steps[0]))
+
+/* Adjusts the target framerate with +/- keys (including numpad). */
+static void process_fps_adjust(FpsAdjustState* state) {
+  const bool* keys = SDL_GetKeyboardState(NULL);
+  bool plus_now = (keys[SDL_SCANCODE_EQUALS] || keys[SDL_SCANCODE_KP_PLUS]) != 0;
+  bool minus_now = (keys[SDL_SCANCODE_MINUS] || keys[SDL_SCANCODE_KP_MINUS]) != 0;
+  if ((int)plus_now && !state->plus_prev) {
+    int cur = TLN_GetTargetFps();
+    for (int i = 0; i < FPS_STEP_COUNT; i++) {
+      if (fps_steps[i] > cur) {
+        TLN_SetTargetFps(fps_steps[i]);
+        break;
+      }
+    }
+  }
+  if ((int)minus_now && !state->minus_prev) {
+    int cur = TLN_GetTargetFps();
+    for (int i = FPS_STEP_COUNT - 1; i >= 0; i--) {
+      if (fps_steps[i] < cur) {
+        TLN_SetTargetFps(fps_steps[i]);
+        break;
+      }
+    }
+  }
+  state->plus_prev = plus_now;
+  state->minus_prev = minus_now;
+  bool zero_now = (keys[SDL_SCANCODE_0] || keys[SDL_SCANCODE_KP_0]) != 0;
+  if ((int)zero_now && !state->zero_prev) {
+    TLN_SetTargetFps(TARGET_FPS);
+  }
+  state->zero_prev = zero_now;
+}
+
 /* Increments the frame counter and updates the window title once per second.
  * FPS is computed from actual elapsed time so drops are reflected accurately. */
 static void update_fps_title(Uint64* p_t0, int* p_frames) {
@@ -312,6 +353,7 @@ int main(int argc, const char* argv[]) {
   Uint64 fps_t0 = SDL_GetTicks();
   int fps_frames = 0;
   PauseState pause_state = {false, false};
+  FpsAdjustState fps_adjust = {false, false, false};
   RailsState rails = {false, 0, 0};
   int xpos = 0;
   bool db_triggered = false;
@@ -331,6 +373,7 @@ int main(int argc, const char* argv[]) {
     if (prof_enabled) {
       prof_frame_begin(&prof);
     }
+    process_fps_adjust(&fps_adjust);
     if (process_pause(&pause_state)) {
       SDL_Delay(MS_PER_SEC / TARGET_FPS); /* throttle loop; last frame stays visible */
       continue;

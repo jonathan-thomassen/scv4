@@ -42,6 +42,19 @@ static int ceiling_fall_dy_at(int frame) {
   return CEILING_FALL_TV;
 }
 
+/* Gradual acceleration when walking off a ledge.
+ * Prepends {-1, 0} to the ceiling fall sequence.
+ * {-1, 0, 1, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8} */
+static int edge_fall_dy_at(int frame) {
+  if (frame == 0) {
+    return -1;
+  }
+  if (frame == 1) {
+    return 0;
+  }
+  return ceiling_fall_dy_at(frame - 2);
+}
+
 /* Short arc (tap) */
 static const int jump_arc_dy_short[JUMP_ARC_LEN_SHORT] = {-1, -5, -4, -5, -3, -4, -3, -2, -3, -1, -2, -1, -1, 0, 0,
                                                           0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  2,  1, 3,
@@ -82,6 +95,7 @@ static int apex_hang = 0;
 static int jump_frame = 0;
 static int ceiling_hang = 0;
 static int ceiling_fall_frame = -1;
+static int edge_fall_frame = -1;
 static bool jump_arc_tall = false;
 static bool jump_arc_higher = false;
 static bool jump_arc_committed = false;
@@ -259,6 +273,7 @@ void simon_set_state(SimonState new_state) {
     jump_was_released = false;
     ceiling_hang = 0;
     ceiling_fall_frame = -1;
+    edge_fall_frame = -1;
     y_velocity = 0;
   } else if (state == SIMON_WALKING) {
     walk_anim_frame = 0;
@@ -373,6 +388,11 @@ static int compute_displacement_y(void) {
   }
   if (ceiling_fall_frame >= 0) {
     int displacement_y = ceiling_fall_dy_at(ceiling_fall_frame++);
+    y_velocity = displacement_y;
+    return displacement_y;
+  }
+  if (edge_fall_frame >= 0) {
+    int displacement_y = edge_fall_dy_at(edge_fall_frame++);
     y_velocity = displacement_y;
     return displacement_y;
   }
@@ -580,9 +600,10 @@ static void begin_edge_fall(void) {
   jump_arc_higher = false;
   jump_arc_tall = false;
   jump_was_released = true;
-  y_velocity = 1;
+  y_velocity = 0;
   ceiling_hang = 0;
   ceiling_fall_frame = -1;
+  edge_fall_frame = 0;
 }
 
 /* Crouch / uncrouch / crouch-whip transitions. */
@@ -704,3 +725,25 @@ bool simon_is_crouching(void) {
 }
 
 bool simon_facing_right(void) { return (bool)(direction == DIR_RIGHT); }
+
+void simon_warp(int world_x, int world_y) {
+  int width = TLN_GetWidth();
+  /* Place camera so Simon appears centred, clamped to map bounds. */
+  int scroll = world_x - (width / 2);
+  if (scroll < 0) {
+    scroll = 0;
+  } else if (scroll > layer_width - width) {
+    scroll = layer_width - width;
+  }
+  position.scroll_x = scroll;
+  position.x = world_x - scroll;
+  position.y = world_y;
+  y_velocity = 0;
+  apex_hang = 0;
+  ceiling_hang = 0;
+  ceiling_fall_frame = -1;
+  edge_fall_frame = -1;
+  jump_frame = 0;
+  simon_set_state(SIMON_IDLE);
+  render_current_state();
+}

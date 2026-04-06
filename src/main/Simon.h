@@ -108,4 +108,11 @@ void simon_set_bridge_tolerance(int tol);
  */
 void simon_set_world_x(int world_x);
 
+/**
+ * Debug: warps Simon to the given world (map) coordinates.
+ * Resets velocity, cancels any jump, and centres the camera on the new
+ * position (clamped to map bounds).
+ */
+void simon_warp(int world_x, int world_y);
+
 #endif
