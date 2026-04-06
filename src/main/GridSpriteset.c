@@ -154,7 +154,7 @@ void load_map_section(const char* filename, const char* section, int max_stages,
       continue;
     }
 
-    char* ptr = line + strspn(line, " \t");
+    const char* ptr = line + strspn(line, " \t");
     char* endptr;
     long raw_idx = strtol(ptr, &endptr, DECIMAL_BASE);
     if (endptr != ptr && *(endptr + strspn(endptr, " \t")) == ':' && raw_idx >= 0 && raw_idx < max_stages) {

@@ -10,5 +10,7 @@
     "search.exclude": {
         "build/**": true,
         ".cache/**": true
-    }
+    },
+    "cppcheck-official.arguments": "--enable=warning,style,performance --std=c23 -I src/main",
+    "cppcheck-official.path": "C:\\msys64\\mingw64\\bin\\cppcheck.exe"
 }

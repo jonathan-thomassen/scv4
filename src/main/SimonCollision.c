@@ -73,9 +73,9 @@ void load_col_definition(void) {
   int cur_row = 0;
   char line[COL_DEF_LINE_MAX];
   while (fgets(line, sizeof(line), file) != NULL) {
-    int new_h;
-    int new_n;
     if (line[0] == '#' && line[1] == ' ') {
+      int new_h;
+      int new_n;
       char* end;
       new_h = (int)strtol(line + 2, &end, DECIMAL_BASE);
       if (end != line + 2 && *end == 'x') {
